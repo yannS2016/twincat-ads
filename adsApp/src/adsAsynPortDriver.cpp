@@ -54,6 +54,104 @@ static int allowCallbackEpicsState     = 0;
 static initHookState currentEpicsState = initHookAtIocBuild;
 static struct timeval s_iocStartTime; /* captured at initHookAtIocBuild */
 
+/* ═════════════════════ TEMPORARY 0x705 DIAGNOSTICS ═════════════════════
+ * Instrumentation to determine whether ADS error 1797 (0x705, "parameter
+ * size not correct") is armed by (a) symbol resolution running against a
+ * not-yet-ready symbol server, or (b) the ADS-state / connection-loss path
+ * driving an invalidate->refresh cycle that fails to fully rebuild a bulk
+ * chunk.  Every line is prefixed "[ADSDIAG" so the log can be grepped.
+ * Set ADSDIAG_ENABLE to 0 (or remove this block and its call sites) once the
+ * root cause is confirmed.
+ * ═══════════════════════════════════════════════════════════════════════ */
+#define ADSDIAG_ENABLE 1
+
+#ifndef ADSIGRP_SYM_UPLOADINFO2
+#define ADSIGRP_SYM_UPLOADINFO2 0xF00F
+#endif
+
+#if ADSDIAG_ENABLE
+/* Seconds since the first ADSDIAG call.  Deliberately independent of
+ * s_iocStartTime, which is not set until initHookAtIocBuild - i.e. well after
+ * the driver constructor has already connected and resolved symbols. */
+static double adsDiagUptime(void)
+{
+    static struct timeval t0 = {0, 0};
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    if (!t0.tv_sec)
+    {
+        t0 = now;
+    }
+    return (now.tv_sec - t0.tv_sec) + (now.tv_usec - t0.tv_usec) / 1e6;
+}
+
+#define ADSDIAG(fmt, ...)                                                                          \
+    do                                                                                             \
+    {                                                                                              \
+        printf("[ADSDIAG %8.3f] " fmt "\n", adsDiagUptime(), ##__VA_ARGS__);                       \
+        fflush(stdout);                                                                            \
+    } while (0)
+
+/* Last observed symbol-table shape, for change detection across events. */
+static uint32_t s_diagPrevSymCount  = 0;
+static uint32_t s_diagPrevUploadLen = 0;
+
+/* Probe the PLC symbol server.  This is the readiness signal that
+ * ADSSTATE_RUN does NOT give us: a runtime can report RUN while it is still
+ * publishing its symbol table.  Read-only, single-shot - it deliberately does
+ * not wait or retry, so it does not perturb the timing we are observing. */
+static void adsDiagSymbolServer(uint16_t amsClientPort,
+                                const AmsNetId& netId,
+                                uint16_t amsPort,
+                                const char* where)
+{
+    AmsAddr amsServer = {netId, amsPort};
+    AdsSymbolUploadInfo2 ui;
+    memset(&ui, 0, sizeof(ui));
+    uint32_t nRead = 0;
+
+    long st = AdsSyncReadReqEx2(
+        amsClientPort, &amsServer, ADSIGRP_SYM_UPLOADINFO2, 0, sizeof(ui), &ui, &nRead);
+
+    if (st || nRead != sizeof(ui))
+    {
+        ADSDIAG("SYMSERVER [%-16s] port=%u NOT-READY status=%ld (0x%lx) nRead=%u",
+                where,
+                amsPort,
+                st,
+                st,
+                nRead);
+        return;
+    }
+
+    const char* delta = "first-probe";
+    if (s_diagPrevSymCount)
+    {
+        delta = (ui.symbolCount == s_diagPrevSymCount && ui.uploadLength == s_diagPrevUploadLen)
+                    ? "UNCHANGED"
+                    : "*** CHANGED ***";
+    }
+    ADSDIAG("SYMSERVER [%-16s] port=%u symbols=%u uploadLen=%u dataTypes=%u [%s, prev %u/%u]",
+            where,
+            amsPort,
+            ui.symbolCount,
+            ui.uploadLength,
+            ui.dataTypeCount,
+            delta,
+            s_diagPrevSymCount,
+            s_diagPrevUploadLen);
+
+    s_diagPrevSymCount  = ui.symbolCount;
+    s_diagPrevUploadLen = ui.uploadLength;
+}
+#else
+#define ADSDIAG(fmt, ...)                                                                          \
+    do                                                                                             \
+    {                                                                                              \
+    } while (0)
+static void adsDiagSymbolServer(uint16_t, const AmsNetId&, uint16_t, const char*) {}
+#endif
+
 #ifdef ADS_UNIT_TEST
 #include <atomic>
 std::atomic<int> g_callbackCount{0};
@@ -237,6 +335,12 @@ static void getEpicsState(initHookState state)
             return;
         }
 
+        /* DIAG: baseline. Every chunk must read OK here - if anything is
+         * already MISMATCH before the first poll, the fault was introduced
+         * during boot symbol resolution, not by a later refresh. */
+        ADSDIAG("BOOT initHookAfterScanInit: baseline chunk check before first poll");
+        adsAsynPortObj->diagCheckBulkConsistencyLock("boot-baseline");
+
         adsAsynPortObj->bulkOK = 1;
         printf("Begin polling PLC!\n");
         break;
@@ -310,8 +414,18 @@ static void adsSymbolsChangedCallback(const AmsAddr* pAddr,
               functionName,
               pAddr->port);
 
+    /* DIAG: TwinCAT bumps ADSIGRP_SYM_VERSION on ANY online change, including
+     * ones that touch nothing this IOC reads (e.g. changing an init value).
+     * This is Trigger B: it forces a full invalidate->refresh with no PLC
+     * restart involved. */
+    ADSDIAG("TRIGGER: port=%u SYMBOLS CHANGED (online change / activation) "
+            "-> invalidateParams + refreshParams",
+            pAddr->port);
+    adsDiagSymbolServer(amsClientPort, pAddr->netId, pAddr->port, "symbolsChanged");
+
     adsAsynPortObj->invalidateParamsLock(pAddr->port);
     adsAsynPortObj->refreshParamsLock(amsClientPort, pAddr->port);
+    ADSDIAG("TRIGGER: port=%u symbols-changed handling complete", pAddr->port);
 }
 
 /** Callback from ads lib for updated data.
@@ -667,6 +781,28 @@ asynStatus adsAsynPortDriver::resolveSymbolHandles(uint16_t amsClientPort)
               N,
               N - totalResolved);
 
+    /* DIAG: a symbol whose INFO resolved but whose HANDLE did not is also a
+     * fallback param (the dict fast path requires entry.resolved == true). */
+    {
+        size_t nUnres = 0;
+        for (const auto& kv : symbolDict_)
+        {
+            if (!kv.second.resolved)
+            {
+                nUnres++;
+                ADSDIAG("RESOLVE-HND UNRESOLVED #%zu: '%s' size=%u adst=%u",
+                        nUnres,
+                        kv.second.symbol.c_str(),
+                        kv.second.size,
+                        kv.second.adst);
+            }
+        }
+        ADSDIAG("RESOLVE-HND: %zu/%zu handles resolved, %zu unresolved",
+                totalResolved,
+                N,
+                nUnres);
+    }
+
     return asynSuccess;
 }
 
@@ -767,6 +903,12 @@ asynStatus adsAsynPortDriver::resolveSymbolInfo(uint16_t amsClientPort)
               functionName,
               N,
               nChunks);
+
+    /* DIAG: probe immediately before the bulk symbol-info request.  Compare
+     * against the "ctor@RUN" probe: if the counts moved between the two, the
+     * PLC was still building its symbol table while we were connecting. */
+    adsDiagSymbolServer(amsClientPort, remoteNetId_, amsportDefault_, "resolveInfo@start");
+    ADSDIAG("RESOLVE-INFO: requesting %zu unique symbols in %zu chunk(s)", N, nChunks);
 
     /* Step 2: batch SUMUP INFOBYNAMEEX */
     const size_t entrySize = sizeof(adsSymbolEntry);
@@ -956,6 +1098,35 @@ asynStatus adsAsynPortDriver::resolveSymbolInfo(uint16_t amsClientPort)
               functionName,
               totalOK,
               totalFail);
+
+    /* DIAG: name every symbol that did NOT make it into symbolDict_.  These are
+     * the fragile ones: updateParamInfoWithPLCInfo() falls back to a live
+     * adsGetSymInfoByName() + adsGetSymHandleByName() for them on EVERY
+     * refresh, forever.  A single ADS timeout on one of these during a refresh
+     * leaves its bulk chunk short and produces a permanent 0x705.
+     * If this list is empty, the connection-loss path cannot be the trigger. */
+    adsDiagSymbolServer(amsClientPort, remoteNetId_, amsportDefault_, "resolveInfo@end");
+    {
+        size_t nMiss = 0;
+        for (const auto& sym : symbols)
+        {
+            std::string sl = sym;
+            std::transform(
+                sl.begin(), sl.end(), sl.begin(), [](unsigned char c) { return std::tolower(c); });
+            if (symbolDict_.find(sl) == symbolDict_.end())
+            {
+                nMiss++;
+                ADSDIAG("RESOLVE-INFO MISS #%zu: '%s' -> will use per-record ADS fallback forever",
+                        nMiss,
+                        sym.c_str());
+            }
+        }
+        ADSDIAG("RESOLVE-INFO: %zu/%zu in dict, %zu MISSES%s",
+                symbolDict_.size(),
+                N,
+                nMiss,
+                nMiss ? "  <-- these are the 0x705 fuse" : "  (no fallback params)");
+    }
 
     return asynSuccess;
 }
@@ -1242,10 +1413,14 @@ adsAsynPortDriver::adsAsynPortDriver(const char* portName,
     }
 
     //try to connect, and hang until we succeed!
+    ADSDIAG("BOOT ctor: waiting for ADS connect + ADSSTATE_RUN on port %u", amsport);
+    int diagConnectTries = 0;
     while (true)
     {
+        diagConnectTries++;
         if (connect(pasynUserSelf) != asynSuccess)
         {
+            ADSDIAG("BOOT ctor: connect() attempt %d FAILED", diagConnectTries);
             asynPrint(pasynUserSelf,
                       ASYN_TRACE_ERROR,
                       "%s:%s: connect failed for port %s.\n",
@@ -1268,6 +1443,12 @@ adsAsynPortDriver::adsAsynPortDriver(const char* portName,
             disconnect(pasynUserSelf);
             continue;
         }
+        ADSDIAG("BOOT ctor: attempt %d adsState=%u (%s)%s",
+                diagConnectTries,
+                adsState,
+                adsStateToString(adsState),
+                adsState == ADSSTATE_RUN ? "  <-- RUN" : "");
+
         if (adsState == ADSSTATE_RUN)
         {
             asynPrint(pasynUserSelf,
@@ -1276,6 +1457,13 @@ adsAsynPortDriver::adsAsynPortDriver(const char* portName,
                       driverName,
                       functionName,
                       portName);
+
+            /* DIAG: probe the symbol server at the exact instant the driver
+             * declares the PLC "connected".  If this says NOT-READY (or the
+             * counts differ from the probe taken later at resolveSymbolInfo),
+             * then ADSSTATE_RUN fired before the symbol table was published
+             * and the boot race is confirmed. */
+            adsDiagSymbolServer(amsClientPort, remoteNetId_, amsport, "ctor@RUN");
 
             /* symbol info + handle resolution deferred to first drvUserCreate()
            * call — DB records are not loaded yet at this point in startup */
@@ -1423,12 +1611,39 @@ void adsAsynPortDriver::cyclicThread()
 
             oneAmsConnectionOK = oneAmsConnectionOK || portConnected;
 
+            /* DIAG: log every ADS-state transition.  A single failed/timed-out
+             * adsReadState() is enough to declare the port disconnected - there
+             * is no retry or debounce - and that is what arms the
+             * invalidate->refresh cycle on a running IOC. */
+            if (port->adsState != port->adsStateOld || port->connected != port->connectedOld)
+            {
+                ADSDIAG("ADSSTATE port=%u %s(%u) -> %s(%u)  connected %d -> %d  "
+                        "readStateStatus=%d err=%ld (0x%lx)",
+                        port->amsPort,
+                        adsStateToString(port->adsStateOld),
+                        (unsigned)port->adsStateOld,
+                        adsStateToString(port->adsState),
+                        (unsigned)port->adsState,
+                        (int)port->connectedOld,
+                        (int)port->connected,
+                        (int)stat,
+                        error,
+                        error);
+            }
+
             if (port->connected && port->refreshNeeded)
             {
+                ADSDIAG("TRIGGER: port=%u reconnected/refreshNeeded -> refreshParams",
+                        port->amsPort);
                 refreshParamsLock(amsClientPort, port->amsPort);
             }
             if (port->connectedOld && !port->connected)
             {
+                ADSDIAG("TRIGGER: port=%u CONNECTION LOST (adsReadState stat=%d err=0x%lx) "
+                        "-> invalidateParams",
+                        port->amsPort,
+                        (int)stat,
+                        error);
                 invalidateParamsLock(port->amsPort);
                 port->refreshNeeded = true;
                 setAlarmPortLock(port->amsPort, COMM_ALARM, INVALID_ALARM);
@@ -1625,6 +1840,29 @@ void adsAsynPortDriver::bulkReadThread()
                 if (status)
                 {
                     printf("Sum read %d failed: status %ld\n", i, status);
+
+                    /* DIAG: 1797 (0x705) means TwinCAT rejected the request on
+                     * buffer arithmetic before evaluating any handle.  Dump the
+                     * chunk so we can see whether readSize disagrees with the
+                     * sizes sum[] actually asks for, and which param is
+                     * responsible.  Rate-limited so a persistent failure does
+                     * not flood the log. */
+                    static int diagDumpBudget = 20;
+                    if (diagDumpBudget > 0)
+                    {
+                        diagDumpBudget--;
+                        ADSDIAG("SUMREAD FAIL chunk=%d port=%u status=%ld (0x%lx) cnt=%u "
+                                "readSize=%u bytesRead=%u  [%d more dumps]",
+                                i,
+                                bulk[i].amsPort,
+                                status,
+                                status,
+                                cnt,
+                                readSize,
+                                bytesRead,
+                                diagDumpBudget);
+                        diagDumpBulkConsistency("sumread-fail"); // mutex already held here
+                    }
                     continue;
                 }
 
@@ -1949,8 +2187,16 @@ asynStatus adsAsynPortDriver::refreshParams(uint16_t amsClientPort, uint16_t ams
     const char* functionName = "refreshParams";
     asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
+    ADSDIAG("REFRESH >>> begin  amsPort=%u connectedAds_=%d", amsPort, (int)connectedAds_);
+    int diagOK = 0, diagFail = 0, diagSkipped = 0;
+
     if (connectedAds_)
     {
+        /* DIAG: is the symbol server actually serving right now?  This runs on
+         * the reconnect path AND on the symbols-changed (online change) path. */
+        adsDiagSymbolServer(amsClientPort, remoteNetId_, amsPort ? amsPort : amsportDefault_,
+                            "refreshParams");
+
         if (adsParamArrayCount_ > 1)
         {
             //Renew data notification callbacks
@@ -1959,7 +2205,18 @@ asynStatus adsAsynPortDriver::refreshParams(uint16_t amsClientPort, uint16_t ams
                 auto paramInfo = &adsParamArray_[i];
                 if ((amsPort == 0 || paramInfo->amsPort == amsPort) && paramInfo->refreshNeeded)
                 {
-                    updateParamInfoWithPLCInfo(amsClientPort, paramInfo);
+                    if (updateParamInfoWithPLCInfo(amsClientPort, paramInfo) == asynSuccess)
+                    {
+                        diagOK++;
+                    }
+                    else
+                    {
+                        diagFail++;
+                    }
+                }
+                else if (amsPort == 0 || paramInfo->amsPort == amsPort)
+                {
+                    diagSkipped++;
                 }
             }
         }
@@ -1977,8 +2234,99 @@ asynStatus adsAsynPortDriver::refreshParams(uint16_t amsClientPort, uint16_t ams
             }
         }
     }
+
+    /* DIAG: any non-zero fail count here means at least one bulk chunk is now
+     * structurally inconsistent (its sum[] still lists params whose sizes were
+     * never re-added to readSize) - and we are about to re-enable polling
+     * anyway.  Expect 0x705 on the next cycle. */
+    ADSDIAG("REFRESH <<< done   amsPort=%u refreshed=%d FAILED=%d skipped=%d -> bulkOK=1%s",
+            amsPort,
+            diagOK,
+            diagFail,
+            diagSkipped,
+            diagFail ? "   *** CHUNKS LEFT INCONSISTENT - 0x705 EXPECTED ***" : "");
+    {
+        std::lock_guard<std::mutex> lg(bulkReadInfoMutex_);
+        diagDumpBulkConsistency("after-refresh");
+    }
+
     bulkOK = 1;
     return asynSuccess;
+}
+
+/** DIAG: verify, for every bulk chunk, that the declared read-buffer length
+ * agrees with the sum of the per-slot sizes the request actually asks for.
+ * TwinCAT rejects the whole sum-read with 0x705 when
+ *     readSize < cnt*4 + sum(iSize)
+ * so any chunk printed as MISMATCH here will fail on its next poll.
+ * \param[in] where Tag identifying the call site in the log.
+ * NOTE: the caller must already hold bulkReadInfoMutex_.
+ */
+void adsAsynPortDriver::diagDumpBulkConsistency(const char* where)
+{
+#if ADSDIAG_ENABLE
+    for (int i = 0; i < MAXBULK; i++)
+    {
+        if (bulk[i].cnt == 0)
+            break;
+
+        int expected = (int)(bulk[i].cnt * sizeof(uint32_t));
+        for (int j = 0; j < bulk[i].cnt; j++)
+        {
+            expected += (int)bulk[i].sum[j].iSize;
+        }
+
+        if (expected != bulk[i].readSize)
+        {
+            ADSDIAG("BULK-CHECK [%s] chunk %d port=%u cnt=%d readSize=%d expected=%d "
+                    "DELTA=%+d  *** MISMATCH -> 0x705 ***",
+                    where,
+                    i,
+                    bulk[i].amsPort,
+                    bulk[i].cnt,
+                    bulk[i].readSize,
+                    expected,
+                    bulk[i].readSize - expected);
+
+            /* Name the params whose size is missing from readSize. */
+            for (int j = 2; j < bulk[i].cnt; j++)
+            {
+                auto paramInfo = getAdsParamInfo(bulk[i].paramID[j]);
+                if (paramInfo && paramInfo->refreshNeeded)
+                {
+                    ADSDIAG("BULK-CHECK [%s]   chunk %d slot %d '%s' iSize=%u "
+                            "refreshNeeded=1  <-- NOT RE-ADDED",
+                            where,
+                            i,
+                            j,
+                            paramInfo->drvInfo ? paramInfo->drvInfo : "(null)",
+                            bulk[i].sum[j].iSize);
+                }
+            }
+        }
+        else
+        {
+            ADSDIAG("BULK-CHECK [%s] chunk %d port=%u cnt=%d readSize=%d OK",
+                    where,
+                    i,
+                    bulk[i].amsPort,
+                    bulk[i].cnt,
+                    bulk[i].readSize);
+        }
+    }
+#else
+    (void)where;
+#endif
+}
+
+/** DIAG: locking wrapper around diagDumpBulkConsistency(), for call sites that
+ * do not already hold bulkReadInfoMutex_.
+ * \param[in] where Tag identifying the call site in the log.
+ */
+void adsAsynPortDriver::diagCheckBulkConsistencyLock(const char* where)
+{
+    std::lock_guard<std::mutex> lg(bulkReadInfoMutex_);
+    diagDumpBulkConsistency(where);
 }
 
 /** Invalidates all parameters for a specific amsport (with asyn lock()).
@@ -2003,7 +2351,12 @@ asynStatus adsAsynPortDriver::invalidateParams(uint16_t amsPort)
     const char* functionName = "invalidateParams";
     asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
 
+    ADSDIAG("INVALIDATE: amsPort=%u -> bulkOK=0, all params marked refreshNeeded, "
+            "chunk readSize reset to 16 (cnt and sum[] left intact)",
+            amsPort);
+
     bulkOK = 0;
+    int diagMarked = 0;
     if (adsParamArrayCount_ > 1)
     {
         for (int i = 1; i < adsParamArrayCount_; i++)
@@ -2012,6 +2365,7 @@ asynStatus adsAsynPortDriver::invalidateParams(uint16_t amsPort)
             if (amsPort == 0 || paramInfo->amsPort == amsPort)
             {
                 paramInfo->refreshNeeded = true;
+                diagMarked++;
             }
         }
     }
@@ -2020,13 +2374,23 @@ asynStatus adsAsynPortDriver::invalidateParams(uint16_t amsPort)
         if (amsPort == 0 || bulkTS[i].amsPort == amsPort)
             bulkTS[i].refreshNeeded = 1;
     }
+    int diagChunks = 0;
     for (int i = 0; i < MAXBULK; i++)
     {
         if (bulk[i].cnt == 0) // Quit if unused!
             break;
         if (amsPort == 0 || bulk[i].amsPort == amsPort)
+        {
+            ADSDIAG("INVALIDATE:   chunk %d port=%u cnt=%d readSize %d -> 16",
+                    i,
+                    bulk[i].amsPort,
+                    bulk[i].cnt,
+                    bulk[i].readSize);
             bulk[i].readSize = 4 * sizeof(uint32_t); // Initialize to just the timestamp!
+            diagChunks++;
+        }
     }
+    ADSDIAG("INVALIDATE: %d params marked, %d chunks reset", diagMarked, diagChunks);
     return asynSuccess;
 }
 
@@ -2380,11 +2744,31 @@ asynStatus adsAsynPortDriver::updateParamInfoWithPLCInfo(uint16_t amsClientPort,
         }
     }
 
+    /* DIAG: which resolution path did this param take?  "dict" params do zero
+     * ADS I/O here and cannot fail on a timeout; "FALLBACK" params issue two
+     * synchronous round trips on every single refresh. */
+    ADSDIAG("PARAM %-40s path=%-8s plcSize=%u adst=%u hnd=0x%x bulkIdx=%d bulkOff=%d",
+            paramInfo->drvInfo ? paramInfo->drvInfo : "(null)",
+            paramInfo->isAdrCommand ? "ADR" : (fromDict ? "dict" : "FALLBACK"),
+            paramInfo->plcSize,
+            paramInfo->plcDataType,
+            paramInfo->hSymbolicHandle,
+            paramInfo->bulkIndex,
+            paramInfo->bulkOffset);
+
     if (!paramInfo->isAdrCommand && !fromDict)
     {
         status = adsGetSymInfoByName(amsClientPort, paramInfo);
         if (status != asynSuccess)
+        {
+            /* THE FUSE: this param is already a member of a bulk chunk (cnt and
+             * sum[] still list it) but will never be re-added, so the chunk's
+             * readSize stays short -> permanent 0x705 for the WHOLE chunk. */
+            ADSDIAG("PARAM %s: adsGetSymInfoByName FAILED -> chunk %d left INCONSISTENT",
+                    paramInfo->drvInfo ? paramInfo->drvInfo : "(null)",
+                    paramInfo->bulkIndex);
             return asynError;
+        }
     }
 
     // Check if array
@@ -2417,6 +2801,11 @@ asynStatus adsAsynPortDriver::updateParamInfoWithPLCInfo(uint16_t amsClientPort,
     {
         if (paramInfo->plcSize != paramInfo->arrayDataBufferSize && paramInfo->arrayDataBuffer)
         { //new size of array
+            /* DIAG: a genuine PLC-side size change for this symbol. */
+            ADSDIAG("PARAM %s: SIZE CHANGED %u -> %u (real PLC type/array change)",
+                    paramInfo->drvInfo ? paramInfo->drvInfo : "(null)",
+                    (unsigned)paramInfo->arrayDataBufferSize,
+                    paramInfo->plcSize);
             free(paramInfo->arrayDataBuffer);
             paramInfo->arrayDataBuffer = NULL;
         }
@@ -2446,7 +2835,12 @@ asynStatus adsAsynPortDriver::updateParamInfoWithPLCInfo(uint16_t amsClientPort,
         adsReleaseSymbolicHandle(amsClientPort, paramInfo, true);
         status = adsGetSymHandleByName(amsClientPort, paramInfo);
         if (status != asynSuccess)
+        {
+            ADSDIAG("PARAM %s: adsGetSymHandleByName FAILED -> chunk %d left INCONSISTENT",
+                    paramInfo->drvInfo ? paramInfo->drvInfo : "(null)",
+                    paramInfo->bulkIndex);
             return asynError;
+        }
     }
 
     if (paramInfo->isIOIntr)
@@ -2458,6 +2852,8 @@ asynStatus adsAsynPortDriver::updateParamInfoWithPLCInfo(uint16_t amsClientPort,
             status = adsAddDataCallback(amsClientPort, paramInfo);
             if (status != asynSuccess)
             {
+                ADSDIAG("PARAM %s: adsAddDataCallback FAILED (notification path, not bulk)",
+                        paramInfo->drvInfo ? paramInfo->drvInfo : "(null)");
                 return asynError;
             }
         }
@@ -2466,6 +2862,8 @@ asynStatus adsAsynPortDriver::updateParamInfoWithPLCInfo(uint16_t amsClientPort,
             status = adsAddToBulkRead(amsClientPort, paramInfo);
             if (status != asynSuccess)
             {
+                ADSDIAG("PARAM %s: adsAddToBulkRead FAILED (no room?) -> chunk INCONSISTENT",
+                        paramInfo->drvInfo ? paramInfo->drvInfo : "(null)");
                 return asynError;
             }
         }
@@ -2578,10 +2976,29 @@ asynStatus adsAsynPortDriver::adsAddToBulkRead(uint16_t amsClientPort, adsParamI
         group  = ADSIGRP_SYM_VALBYHND;
         offset = paramInfo->hSymbolicHandle;
     }
+    /* DIAG: watch readSize accounting. This += is unconditional, so re-adding
+     * an already-allocated param WITHOUT a preceding invalidateParams()
+     * double-counts; and a param that never reaches this line after an
+     * invalidate leaves readSize short. Both show up as a BULK-CHECK delta. */
+    const uint32_t diagOldSize = bulk[paramInfo->bulkIndex].sum[paramInfo->bulkOffset].iSize;
+    const int diagOldReadSize  = bulk[paramInfo->bulkIndex].readSize;
+
     bulk[paramInfo->bulkIndex].sum[paramInfo->bulkOffset].iGroup  = group;
     bulk[paramInfo->bulkIndex].sum[paramInfo->bulkOffset].iOffset = offset;
     bulk[paramInfo->bulkIndex].sum[paramInfo->bulkOffset].iSize   = paramInfo->plcSize;
     bulk[paramInfo->bulkIndex].readSize += paramInfo->plcSize + sizeof(uint32_t);
+
+    ADSDIAG("BULK-ADD chunk=%d slot=%d '%s' iSize %u->%u grp=0x%x off=0x%x readSize %d->%d%s",
+            paramInfo->bulkIndex,
+            paramInfo->bulkOffset,
+            paramInfo->drvInfo ? paramInfo->drvInfo : "(null)",
+            diagOldSize,
+            paramInfo->plcSize,
+            group,
+            offset,
+            diagOldReadSize,
+            bulk[paramInfo->bulkIndex].readSize,
+            (diagOldSize && diagOldSize != paramInfo->plcSize) ? "  *** SIZE CHANGED ***" : "");
 
     return asynSuccess;
 }

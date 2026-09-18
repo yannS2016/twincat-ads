@@ -186,6 +186,9 @@ class adsAsynPortDriver : public asynPortDriver
     amsPortInfo* getAmsPortObject(uint16_t amsPort);
     asynStatus adsAddToBulkRead(uint16_t amsClientPort, adsParamInfo* paramInfo);
     int adsFindBulkTimeStamp(uint16_t amsClientPort, uint16_t amsPort);
+    /* TEMPORARY 0x705 diagnostic - see adsAsynPortDriver.cpp.
+     * Caller must hold bulkReadInfoMutex_. */
+    void diagDumpBulkConsistency(const char* where);
 
     //Octet interface methods (ascii command parser through readoctet() and writeoctet())
     int octetCMDreadIt(uint16_t amsClientPort, char* outbuf, size_t outlen);
@@ -296,6 +299,8 @@ class adsAsynPortDriver : public asynPortDriver
   public:
     int bulkOK;          // OK to process bulk reads!
     int bulk_elapsed_us; // Time of last bulk read loop.
+    /* TEMPORARY 0x705 diagnostic - takes bulkReadInfoMutex_ itself. */
+    void diagCheckBulkConsistencyLock(const char* where);
 
     // member declarations
     std::unordered_map<std::string, AdsSymbolDictEntry> symbolDict_;
