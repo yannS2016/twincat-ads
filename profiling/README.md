@@ -16,6 +16,8 @@ The sample IOC (`lcls-plc-motion-abstraction-sample`) links the **site** module 
 | `patches/0001-instrumentation-profLog.patch` | log-only `PROF` lines (bulk failures, state polls, invalidate/refresh, handle resolution, exits). No behavior change. |
 | `patches/0002-F10-restore-connectedAds.patch` | F10: restore `connectedAds_=1` when the state poll succeeds again. Fixes the stuck `Sum read N failed` loop. |
 | `patches/0003-F12-receiveframe-skip.patch` | F12: AdsLib `ReceiveFrame` skips only the unread remainder after a timeout. Fixes the stream desync. |
+| `patches/0004-experiment-noexit.patch` | Experiment, not a fix: `cyclicThread` logs `EXIT_SKIPPED` instead of calling `exit(-1)`, so the IOC survives a PLC restart and the reconnect branch becomes reachable. |
+| `patches/0005-log-sub-read-status.patch` | Log only: adds the per-symbol status (for example `0x710`) to the `bulk read for ... failed` line. |
 
 `adsAsynPortDriver.1.1.1.orig.cpp` is the unmodified 1.1.1 driver, for reference.
 
@@ -24,7 +26,7 @@ The sample IOC (`lcls-plc-motion-abstraction-sample`) links the **site** module 
     SITE_MODULE=<twincat-ads R2.0.0-1.1.1 dir> ADS_IOC_SRC=<built ads-ioc R2.2.1 tree> \
         ./build-profiling-ioc.sh base|f10|f12 [out_dir]
 
-Variants: `base` (instrumentation), `f10` (+F10), `f12` (+F10 +F12). The script copies the module, applies the patches, builds, copies the ads-ioc tree, points it at the new module and relinks. Result: `<out>/ads-ioc-<variant>/bin/<arch>/adsIoc`. Use that directory as `ADS_IOC_DIR` below.
+Variants: `base` (instrumentation), `f10` (+F10), `f12` (+F10 +F12), `noexit` (base +0004), `f12noexit` (f12 +0004), `f12noexitdbg` (f12noexit +0005). The script copies the module, applies the patches, builds, copies the ads-ioc tree, points it at the new module and relinks. Result: `<out>/ads-ioc-<variant>/bin/<arch>/adsIoc`. Use that directory as `ADS_IOC_DIR` below.
 
 The sample IOC files need a regenerated `st.cmd` and database with pytmc 2.22.1 (2.21.1 fails on the array pragma `1..3 | 1..3`) and prefix `PLC:TST`. A long prefix makes records fail to create. See the report, "Test bed".
 
@@ -35,7 +37,7 @@ The sample IOC files need a regenerated `st.cmd` and database with pytmc 2.22.1 
 | `run_scenario.sh <name> [--shipped]` | start the sample IOC with raw, stamped logging into `runs/<ts>-<name>/`. Env: `ADS_IOC_DIR`, `REPO` (sample IOC repo), `IOC_IPADDR` (point the IOC at a proxy), `RUN_DIR`. Writes `IOC_RC=<exit status>`. |
 | `procserv_sim.sh <name> [holdoff_s]` | emulates procServ: restart after exit. |
 | `cycler.sh <name> [cycle_s]` | restarts the IOC every N s so a PLC event lands in a boot window. |
-| `ads_stall_proxy.py` | TCP proxy that stalls the ADS connection (`--mode pause`, `cut`, `split`). Stays on the IOC host, keeps the IOC host's source address. |
+| `ads_stall_proxy.py` | TCP proxy that stalls the ADS connection (`--mode pause`, `cut`, `split`). Stays on the IOC host, keeps the IOC host's source address. Logs `EOF`/`ERR`/`GAP` (PLC silence over 1 s) events. With `--inject-reset`, `kill -USR2 <pid>` (or `--inject-delay <s>`) sends the ADS Write Control RESET that XAE's "Restart TwinCAT System in Run Mode" uses (port 10000, AdsState 2, DevState 0) on the IOC's own connection, and drops the PLC's reply. Restarts the PLC system, so use it only on a test PLC. |
 | `ladder.sh "<ms,ms>" <repeats> <tag>` | one fresh IOC and proxy per trial, one stall, classify. Env: `MODE`, `IOCDIR`, `HOSTIP`, `PLCIP`, `FIRST`, `OBS`. |
 | `run_stall_test.sh` | one IOC behind the proxy with a stall schedule. |
 | `classify.py <run_dir>` | outcome of one trial: NOEFFECT, RECOVERED, STUCK, EXIT, SIGPIPE, plus desync count. |

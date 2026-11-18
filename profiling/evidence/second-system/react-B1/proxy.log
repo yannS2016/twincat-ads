@@ -1,0 +1,16 @@
+14:31:08.752 PROXY LISTEN 134.79.165.33:48898 -> 172.21.148.154:48898 mode=pause
+14:31:09.956 PROXY CONN_OPEN client=134.79.165.33:36944 target=172.21.148.154:48898
+14:32:56.300 PROXY GAP dir=c2p silent_ms=5000
+14:32:56.304 PROXY GAP dir=p2c silent_ms=5504
+14:32:56.319 PROXY EOF dir=c2p (peer closed the connection)
+14:32:56.319 PROXY EOF dir=p2c (peer closed the connection)
+14:32:56.319 PROXY CONN_CLOSE client=134.79.165.33:36944
+14:33:13.247 PROXY CONN_OPEN client=134.79.165.33:58302 target=172.21.148.154:48898
+14:33:43.263 PROXY EOF dir=c2p (peer closed the connection)
+14:33:43.263 PROXY EOF dir=p2c (peer closed the connection)
+14:33:43.263 PROXY CONN_CLOSE client=134.79.165.33:58302
+14:34:01.260 PROXY CONN_OPEN client=134.79.165.33:41196 target=172.21.148.154:48898
+14:36:29.950 PROXY EOF dir=c2p (peer closed the connection)
+14:36:29.950 PROXY EOF dir=p2c (peer closed the connection)
+14:36:29.950 PROXY CONN_CLOSE client=134.79.165.33:41196
+14:36:49.260 PROXY CONN_OPEN client=134.79.165.33:54822 target=172.21.148.154:48898

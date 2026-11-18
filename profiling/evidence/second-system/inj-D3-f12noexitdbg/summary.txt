@@ -1,0 +1,4 @@
+group BULK_FAIL lines (PROF): 0
+per-symbol sub-read failures: 154438
+sub-read status codes:
+ 154438 failed: 0x710

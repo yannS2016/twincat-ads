@@ -1,0 +1,18 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 15:06:49.164336180 -0800
++++ b/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 15:06:49.187335705 -0800
+@@ -1475,12 +1475,9 @@
+         }
+         if (notConnectedCounter_ > 1)
+         {
+-            profLog("EXIT_NEG1", "notConnectedCounter=%d", notConnectedCounter_);
+-            asynPrint(pasynUserSelf,
+-                      ASYN_TRACE_ERROR,
+-                      "cyclicThread: failed to re-establish connection to ams server... exiting "
+-                      "ioc. will retry if on auto restart.\n");
+-            exit(-1);
++            /* EXPERIMENT (not a fix): do not exit, so the reconnect branch below becomes reachable and the
++             * bulk and cyclic threads can be observed after the PLC returns. */
++            profLog("EXIT_SKIPPED", "notConnectedCounter=%d", notConnectedCounter_);
+         }
+ 
+         if (!oneAmsConnectionOK && autoConnect_)

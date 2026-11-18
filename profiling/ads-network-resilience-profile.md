@@ -148,7 +148,26 @@ Observations:
 - After the `exit(-1)` log line the process lives about 7.7 s more (`IOC_RC` at +8.7 s after the cut, `EXIT` at +0.5 s). The bulk thread is blocked on a 5 s read timeout and the process waits for it. Not investigated further.
 - `ads_stall_proxy.py` in `cut` mode now logs `STALL_START` and `STALL_END`, so `classify.py` and `ladder.sh` handle it like a stall of length 0.
 
-Not done on this system: stalls of 1 to 3 s on base and 4 s on f12, 10 or more trials at 8 s and 12 s, `tc`/`nft` faults, boot-time faults, PLC reactivation (planned last), and the F13 measurement.
+Not done on this system: stalls of 1 to 3 s on base and 4 s on f12, 10 or more trials at 8 s and 12 s, `tc`/`nft` faults, boot-time faults, and the F13 measurement.
+
+### PLC reactivation on the second system (2026-11-18)
+
+A TwinCAT reactivation in XAE is two steps: "Activate Configuration" (uploads `CurrentConfig.tzip`, `Plc\Port_851.app` and registry entries over the system service, port 10000) and, if XAE asks, "Restart TwinCAT System in Run Mode". An ADS capture of XAE against this PLC (port 10000 only) showed the restart is a single **Write Control to port 10000, AdsState 2 (RESET), DevState 0, no data**, answered with error 0 at once. With dialog 1 only (the PLC went to STOP and came back), the shipped driver exited with `exit(-1)` every time. Runs `react-A1`, `react-B1`, `inj-C1` and the user's own IOC log:
+
+| Event | IOC outcome |
+|---|---|
+| Dialog 1 only, 8 events (`react-A1` 5, `react-B1` 3; IOC polling) and 1 injected Reset (`inj-C1`) | 9 of 9 `exit(-1)` (code 255) 0.5 to 0.6 s after port 851 reported STOP (state 6), never a crash. One event (`react-B1` 14:32:50) had a 5.5 s PLC silence with the TCP session open before the exit. |
+| Dialog 1 then dialog 2, IOC booted between, shipped driver (user's `ioc.log`, 13:49 to 13:53) | First IOC: `exit(-1)` followed by **SIGSEGV** (core dumped) while the bulk thread still ran. Second IOC: connection lost and back in 0.52 s, no exit, then `Sum read N failed: status 1797` on every group, still failing at the end of the log (746 lines). This is F10 from a real reactivation. |
+
+`ads_stall_proxy.py --inject-reset` sends the same Write Control on the IOC's own connection and AMS Net ID (no extra route), swallows the reply, and with `--probe-s` polls port 851 every 100 ms. Three trials (`inj-D1`, `inj-D2`, `inj-D3`) gave the same PLC timeline after the Reset (t in seconds): STOP at +0.1, no reply at about +10 to +11, error 6 (target port not found) at +11.1 to +13.4, state 0 at +13.4, STOP at +13.8, **RUN at +13.9 to +14.0**. The PLC is away about 14 s. Because the real driver exits at +0.6 s, the builds below do not exit (patch 0004, an experiment that also makes the reconnect branch reachable).
+
+| Build | Result after the PLC is back in RUN (about 2 min observed) |
+|---|---|
+| `noexit` (shipped driver, `exit(-1)` removed) | **Stuck**: `REFRESH_EXIT connectedAds=0 bulk0.readSize=16`, every group fails with 1797, 5805 failures, never recovers. The `connect()` calls made during the 14 s outage did not set `connectedAds_`, and nothing calls it again once the poll succeeds. |
+| `f12noexit` (F10 + F12 + no exit) | The group failure is fixed: `REFRESH_CALL connectedAds=1`, refresh takes 12.8 s, `readSize` restored, 0 group failures. **But about 450 per-symbol reads per second still fail**, 7155 of about 8956 distinct symbols in 30 s, for as long as observed (more than 3 min). |
+| `f12noexitdbg` (same plus patch 0005 logging the sub-read status) | Every failing sub-read returns **0x710 `ADSERR_DEVICE_SYMBOLNOTFOUND`** (154438 of 154438). |
+
+So after a real PLC restart the symbolic handles obtained at boot are gone from the PLC (0x710), and the driver's refresh does not obtain new ones. F10 is necessary but not sufficient here (it was sufficient for stalls, which do not change the PLC's handles). This confirms H4 on this PLC. A restart of the IOC (the shipped `exit(-1)` path) re-resolves the handles, which is why the shipped driver only fails permanently when it survives the event. Evidence: `evidence/second-system/react-A1`, `react-B1`, `inj-C1`, `inj-D1-noexit`, `inj-D2-f12noexit`, `inj-D3-f12noexitdbg` (each with `summary.txt` where counts were taken).
 
 ## Findings
 
@@ -166,6 +185,8 @@ Not done on this system: stalls of 1 to 3 s on base and 4 s on f12, 10 or more t
 | F11 | A Windows Firewall block rule does not affect an already-established TCP connection. An 8 s block on port 48898 left the IOC untouched. Stall tests need a proxy or packet-level tool. | Confirmed | `plc-side/disturb-network.ps1` run, no IOC reaction |
 | F12 (fixed, see patch) | AdsLib can lose its place in the TCP stream. If a frame read times out (`select() timeout`), `ReceiveFrame` calls `ReceiveJunk(bytesLeft)` without subtracting bytes the failed `Receive` already consumed. The skip over-reads into the next frame, later frames parse mid-way ("Frame to short to be AoE", "Port 0x206d is out of range"), and every request times out until the IOC exits via `exit(-1)` after 45 s. Cause confirmed by the fix: after the patch no desync warnings appear in 5 of 5 mid-frame stalls. | Confirmed (reproduced 4 of 5 with the split proxy, absent 5 of 5 after the fix) | run `20261117-172035-L8000-r4`; `AmsConnection.cpp` `ReceiveFrame`, `ReceiveJunk` |
 | F13 | After every recovery the PLC sends a "Symbols changed" notification, so the IOC refreshes twice. Each refresh takes about 11 s for 7363 params with bulk reads paused. Data is stale for about 25 s after a stall that ends in recovery. | Observed (fix build) | run `20261117-170055-L6000-r1`: `REFRESH_EXIT` 17:02:39.0, then `adsSymbolsChangedCallback` and a second refresh to 17:02:51 |
+| F14 | `exit(-1)` runs while the bulk thread is still issuing ADS calls on the dying socket. In one field run the IOC then died with SIGSEGV (core dumped), not exit code 255. | Observed once (user `ioc.log` 13:49:45) | "Sum read 2 failed: status -1" then "Segmentation fault (core dumped)". Not seen in my 9 exits (all code 255). A fix needs the threads stopped before exit. |
+| F15 | After a real PLC restart (Write Control RESET to port 10000) the PLC is away about 14 s and its symbolic handles are invalid. A driver that survives and has F10 fixed still fails every symbol read with 0x710 until the IOC restarts. | Confirmed (`f12noexit`, `f12noexitdbg`) | `evidence/second-system/inj-D2-f12noexit`, `inj-D3-f12noexitdbg/summary.txt` |
 | F7 | `Sum read N failed` is an unthrottled `printf` with no timestamp, interleaved with other output. | Confirmed in code | `bulkReadThread`, line 1550 in 1.1.1 |
 
 ## Hypotheses still open
@@ -176,7 +197,7 @@ These come from reading the code. None was observed, because the IOC always exit
 |---|---|---|
 | H1 | Confirmed as F10, with one correction: the trigger is `connectedAds_` stuck at 0, which makes `refreshParams` skip the rebuild. | done (C2) |
 | H2 | `adsAddToBulkRead` does `readSize += plcSize + 4` on every call, including re-adds, so `readSize` inflates. | Same run as H1, log `BULK_ADD` after the refresh |
-| H4 | Symbol handles are never re-resolved after reconnect (`symInfoResolved_` is never reset, `bSymbolicHandleValid` is not cleared on invalidate). | Same run, check status codes (0x710 versus 0x705) |
+| H4 | Symbol handles are never re-resolved after reconnect (`symInfoResolved_` is never reset, `bSymbolicHandleValid` is not cleared on invalidate). | **Confirmed as F15** on the second system (0x710 on every symbol after a PLC restart, with F10 fixed). Open: why `updateParamInfoWithPLCInfo` in `refreshParams` leaves stale handles. |
 | H7 | A PLC reactivation inside the boot window leaves stale handles, and the first poll sees `UNKNOWN to RUN` so nothing is invalidated. | Needs the PLC to return before the boot ends. F3 got in the way. |
 
 Status 1797 is 0x705, `ADSERR_DEVICE_INVALIDSIZE` ("parameter size not correct"), from `ADS/AdsLib/standalone/AdsDef.h`. `ads-issue-observation.txt` calls it INVALIDDATA, which is wrong. The size error matches `readSize=16`, so the loop is not caused by stale handles. H2 and H4 may still be real but are not needed to explain it.

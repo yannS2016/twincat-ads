@@ -1,0 +1,23 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 15:24:28.549427662 -0800
++++ b/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 15:24:28.573427166 -0800
+@@ -1631,15 +1631,17 @@
+                                   bulk[i].paramID[j]);
+                         continue;
+                     }
+-                    if (*stat++)
++                    uint32_t subStatus = *stat++;
++                    if (subStatus)
+                     {
+                         asynPrint(asynTraceUser,
+                                   ASYN_TRACE_ERROR,
+-                                  "%s:%s: bulk read for %s (%d) failed\n",
++                                  "%s:%s: bulk read for %s (%d) failed: 0x%x\n",
+                                   driverName,
+                                   functionName,
+                                   paramInfo->drvInfo,
+-                                  j);
++                                  j,
++                                  (unsigned)subStatus);
+                         paramInfo->refreshNeeded = true;
+                     }
+                     paramInfo->plcTimeStampRaw  = nTimeStamp;

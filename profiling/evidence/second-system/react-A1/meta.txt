@@ -1,0 +1,55 @@
+holdoff=15
+scenario=react-A1
+start=2026-11-18T13:22:58-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-base/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=85174f577fab19320b21725ef6422655
+epicsEnvSet("IPADDR",           "172.21.148.154")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a
+scenario=react-A1
+start=2026-11-18T13:37:41-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-base/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=85174f577fab19320b21725ef6422655
+epicsEnvSet("IPADDR",           "172.21.148.154")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a
+scenario=react-A1
+start=2026-11-18T13:38:36-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-base/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=85174f577fab19320b21725ef6422655
+epicsEnvSet("IPADDR",           "172.21.148.154")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a
+scenario=react-A1
+start=2026-11-18T13:41:40-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-base/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=85174f577fab19320b21725ef6422655
+epicsEnvSet("IPADDR",           "172.21.148.154")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a
+scenario=react-A1
+start=2026-11-18T13:42:49-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-base/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=85174f577fab19320b21725ef6422655
+epicsEnvSet("IPADDR",           "172.21.148.154")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a
+scenario=react-A1
+start=2026-11-18T13:46:16-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-base/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=85174f577fab19320b21725ef6422655
+epicsEnvSet("IPADDR",           "172.21.148.154")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a

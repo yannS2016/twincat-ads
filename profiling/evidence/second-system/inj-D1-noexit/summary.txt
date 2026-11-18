@@ -1,0 +1,3 @@
+group BULK_FAIL lines (PROF): 5805
+per-symbol sub-read failures: 498
+sub-read status codes:
