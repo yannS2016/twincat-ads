@@ -101,6 +101,8 @@ class Proxy:
 
     async def stall(self, ms, n):
         if self.a.mode == 'cut':
+            # STALL_START/END are logged so classify.py and ladder.sh treat a cut like a stall of length 0
+            self.log('STALL_START', f'stall={n} planned_ms=0 conns={len(self.conns)}')
             self.log('CUT', f'stall={n} closing {len(self.conns)} connection(s)')
             for cw, pw in list(self.conns):
                 for w in (cw, pw):
@@ -108,6 +110,7 @@ class Proxy:
                         w.transport.abort()
                     except Exception:
                         pass
+            self.log('STALL_END', f'stall={n} held_ms=0')
             return
         if self.a.mode == 'split':
             self.split_done.clear()

@@ -1,0 +1,7 @@
+outcome,stall_ms,first_fail_s,n_bulk_fail,n_1797,ioc_rc,exit_after_s,run_dir
+NOEFFECT,1000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220031-L1000-r1
+NOEFFECT,2000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220229-L2000-r1
+NOEFFECT,1000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220428-L1000-r2
+NOEFFECT,2000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220625-L2000-r2
+NOEFFECT,1000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220824-L1000-r3
+NOEFFECT,2000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-221021-L2000-r3

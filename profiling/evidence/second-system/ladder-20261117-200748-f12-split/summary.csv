@@ -1,0 +1,4 @@
+outcome,stall_ms,first_fail_s,n_bulk_fail,n_1797,ioc_rc,exit_after_s,run_dir
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200748-L8000-r1
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200953-L8000-r2
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-201158-L8000-r3

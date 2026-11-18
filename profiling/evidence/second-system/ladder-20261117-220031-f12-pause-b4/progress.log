@@ -1,0 +1,13 @@
+22:00:32 trial stall=1000ms rep=1 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220031-L1000-r1
+NOEFFECT,1000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220031-L1000-r1
+22:02:30 trial stall=2000ms rep=1 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220229-L2000-r1
+NOEFFECT,2000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220229-L2000-r1
+22:04:29 trial stall=1000ms rep=2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220428-L1000-r2
+NOEFFECT,1000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220428-L1000-r2
+22:06:26 trial stall=2000ms rep=2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220625-L2000-r2
+NOEFFECT,2000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220625-L2000-r2
+22:08:25 trial stall=1000ms rep=3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220824-L1000-r3
+NOEFFECT,1000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-220824-L1000-r3
+22:10:22 trial stall=2000ms rep=3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-221021-L2000-r3
+NOEFFECT,2000,,0,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-221021-L2000-r3
+22:12:21 LADDER_DONE

@@ -1,0 +1,4 @@
+outcome,stall_ms,first_fail_s,n_bulk_fail,n_1797,ioc_rc,exit_after_s,run_dir
+EXIT,0,5.0,1,0,255,8.7,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-201915-L1000-r1
+EXIT,0,5.0,1,0,255,8.7,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-202112-L1000-r2
+EXIT,0,5.0,1,0,255,8.9,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-202309-L1000-r3

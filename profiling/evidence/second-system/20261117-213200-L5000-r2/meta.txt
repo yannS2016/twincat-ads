@@ -1,0 +1,9 @@
+scenario=L5000
+start=2026-11-17T21:32:01-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-f12/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=773ab16a6f466b1bd0a313a58812d571
+epicsEnvSet("IPADDR",           "134.79.165.33")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a

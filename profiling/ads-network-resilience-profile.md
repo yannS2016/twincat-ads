@@ -118,6 +118,38 @@ A first split run that cut inside the 46-byte AMS/AoE headers had no effect, bec
 
 Patches: `profiling/fix-F10-connectedAds.patch` (driver) and `profiling/fix-F12-receiveframe.patch` (`AmsConnection.cpp` and `.h`). Builds: `ads-ioc-fix` (F10) and `ads-ioc-fix12` (F10 + F12).
 
+## Second system: PLC 172.21.148.154 (2026-11-17, proxy faults only)
+
+The harness was carried to a second host (IOC host 134.79.165.33, PLC 172.21.148.154, RTT about 0.4 ms, owned by this project, no other users). The faults were injected with `ads_stall_proxy.py` only, so the network itself was not disturbed and Phase 1 (baseline on the real network) is still open. Builds `base`, `f10`, `f12` were made from the site module R2.0.0-1.1.1 and the site ads-ioc R2.2.0 (R2.2.1 is not installed on this host). The sample IOC loaded 7352 symbols (7363 on the bench PLC), `ADS_TIMEOUT_MS=1000`. The state poll started 17 s after IOC start, so ladder trials used `FIRST=40` and `OBS=60`. Evidence: `evidence/second-system/` (trimmed with `trim-evidence.sh`).
+
+| Fault | Build | Trials | Outcome |
+|---|---|---|---|
+| Stall 1 s, 2 s | f12 | 3 each | 6 NOEFFECT |
+| Stall 3 s | f12 | 2 | 2 NOEFFECT |
+| Stall 4 s | base | 3 | 3 NOEFFECT |
+| Stall 5 s | base | 10 | 10 RECOVERED, exactly 1 bulk failure each |
+| Stall 5 s | f12 | 10 | 10 RECOVERED, exactly 1 bulk failure each |
+| Stall 6 s | base | 3 | 3 STUCK (915 status-1797 failures each) |
+| Stall 6 s | f12 | 10 | 10 RECOVERED |
+| Stall 8 s | base | 3 | 3 STUCK |
+| Stall 8 s | f12 | 3 | 3 RECOVERED |
+| Stall 12 s | base | 3 | 3 STUCK |
+| Stall 12 s | f12 | 3 | 3 RECOVERED |
+| Mid-frame stall 8 s (`split`) | f10 | 3 | 3 EXIT 255 after about 43 s, 327 to 335 desync warnings |
+| Mid-frame stall 8 s (`split`) | f12 | 3 | 3 RECOVERED, 0 desync, one `bytes already consumed` line each |
+| Socket cut (`cut`) | base | 3 | 3 EXIT 255 |
+| Socket cut (`cut`) | f12 | 3 | 3 EXIT 255 |
+
+Observations:
+
+- F10 reproduces here in 9 of 9 base trials at 6 s or more (bench: 5 of 6). F12 reproduces in 3 of 3 f10 trials (bench: 4 of 5). Both are fixed in every f12 trial (16 of 16 pause trials at 6 s or more, 3 of 3 split trials).
+- The stall threshold is 5 s here. A 5 s stall makes exactly one bulk read time out, and the IOC recovers without a patch, so the bench result of "no effect up to 5 s" does not hold on this PLC. A stall of 6 s or more leaves the base IOC stuck.
+- A cut reproduces F1/F9: the first state poll fails, the second 0.54 s later fails on the dead socket, and `exit(-1)` follows (exit code 255, `EXIT notConnectedCounter=2`). The F10 and F12 patches do not change this, so F1 still needs its own fix.
+- After the `exit(-1)` log line the process lives about 7.7 s more (`IOC_RC` at +8.7 s after the cut, `EXIT` at +0.5 s). The bulk thread is blocked on a 5 s read timeout and the process waits for it. Not investigated further.
+- `ads_stall_proxy.py` in `cut` mode now logs `STALL_START` and `STALL_END`, so `classify.py` and `ladder.sh` handle it like a stall of length 0.
+
+Not done on this system: stalls of 1 to 3 s on base and 4 s on f12, 10 or more trials at 8 s and 12 s, `tc`/`nft` faults, boot-time faults, PLC reactivation (planned last), and the F13 measurement.
+
 ## Findings
 
 | ID | Finding | Verdict | Evidence |

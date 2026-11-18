@@ -1,0 +1,17 @@
+21:30:00 trial stall=5000ms rep=1 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-212959-L5000-r1
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-212959-L5000-r1
+21:32:01 trial stall=5000ms rep=2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213200-L5000-r2
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213200-L5000-r2
+21:34:03 trial stall=5000ms rep=3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213402-L5000-r3
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213402-L5000-r3
+21:36:04 trial stall=5000ms rep=4 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213603-L5000-r4
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213603-L5000-r4
+21:38:05 trial stall=5000ms rep=5 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213804-L5000-r5
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-213804-L5000-r5
+21:40:06 trial stall=5000ms rep=6 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-214005-L5000-r6
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-214005-L5000-r6
+21:42:07 trial stall=5000ms rep=7 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-214206-L5000-r7
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-214206-L5000-r7
+21:44:09 trial stall=5000ms rep=8 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-214408-L5000-r8
+RECOVERED,5000,5.0,1,0,,,desync=0,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-214408-L5000-r8
+21:46:09 LADDER_DONE

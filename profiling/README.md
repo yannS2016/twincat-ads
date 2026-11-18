@@ -41,6 +41,7 @@ The sample IOC files need a regenerated `st.cmd` and database with pytmc 2.22.1 
 | `classify.py <run_dir>` | outcome of one trial: NOEFFECT, RECOVERED, STUCK, EXIT, SIGPIPE, plus desync count. |
 | `analyze.py <log>` | event timeline and summary of an IOC log. |
 | `watch_pvs.py <csv>` | PV watcher (pyepics). Set `EPICS_CA_ADDR_LIST` to the IOC host. |
+| `trim-evidence.sh <dest> <dir>...` | copy the committable part of run and ladder dirs (filtered log, proxy log, summary) into an evidence directory. |
 | `plc-side/disturb-network.ps1` | Windows PLC script. A firewall block does **not** stall an established TCP connection (tested), so it is kept for reference only. |
 
 Addresses default to IOC host 192.168.0.6 and PLC 192.168.0.9 (`HOSTIP`, `PLCIP`). `st.cmd` in the sample repo holds the IOC's own `IPADDR` and `AMSID`.
@@ -49,6 +50,6 @@ Stop processes by pid. `pkill -f <name>` kills the calling shell if its command 
 
 ## Evidence
 
-`evidence/<run>/` holds the trimmed logs of every run in the report (`ioc.filtered.log.gz` keeps `PROF`, AdsLib warnings and errors, `SIM_*`, `IOC_RC`, proxy lines; `BULK_ADD` lines and symbol-lookup noise are dropped), plus `proxy.log`, `sim.log`, `meta.txt`, `pvs.csv`. `evidence/ladder-*/summary.csv` has the per-trial outcomes. Raw logs (about 1 GB) are not committed.
+`evidence/<run>/` holds the trimmed logs of every run in the report (`ioc.filtered.log.gz` keeps `PROF`, AdsLib warnings and errors, `SIM_*`, `IOC_RC`, proxy lines; `BULK_ADD` lines and symbol-lookup noise are dropped), plus `proxy.log`, `sim.log`, `meta.txt`, `pvs.csv`. `evidence/ladder-*/summary.csv` has the per-trial outcomes. Raw logs (about 1 GB) are not committed. `evidence/second-system/` holds the runs from the second host (PLC 172.21.148.154) in the same layout; create it with `trim-evidence.sh <dest> <run_dir|ladder_dir>...`.
 
 Run names: A1, A2, A2b, A3, A4c, A4d are PLC reactivation runs; B1 is the cable pull; C1, C2 are the first proxy runs; `ladder-*-base`, `-fix`, `-split-*` are the stall ladders.

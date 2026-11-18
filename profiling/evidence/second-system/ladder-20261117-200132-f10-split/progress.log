@@ -1,0 +1,7 @@
+20:01:33 trial stall=8000ms rep=1 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200132-L8000-r1
+EXIT,8000,5.0,2,0,255,42.7,desync=327,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200132-L8000-r1
+20:03:38 trial stall=8000ms rep=2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200337-L8000-r2
+EXIT,8000,5.0,2,0,255,42.9,desync=335,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200337-L8000-r2
+20:05:44 trial stall=8000ms rep=3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200543-L8000-r3
+EXIT,8000,5.0,2,0,255,42.7,desync=327,f12skips=0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/20261117-200543-L8000-r3
+20:07:48 LADDER_DONE

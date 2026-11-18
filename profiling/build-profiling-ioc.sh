@@ -29,7 +29,7 @@ make -C "$MOD" -j4 > "$OUT/build-$VAR-module.log" 2>&1
 cp -a "$ADS_IOC_SRC" "$IOC"; chmod -R u+w "$IOC"
 sed -i "s#^ADS=.*#ADS=$MOD#" "$IOC/configure/RELEASE"
 OLD=$(cd "$ADS_IOC_SRC" && pwd)
-grep -rIl "$OLD" "$IOC" 2>/dev/null | grep -v "/O\.$ARCH" | xargs -r sed -i "s#$OLD#$IOC#g"
+{ grep -rIl "$OLD" "$IOC" 2>/dev/null || true; } | { grep -v "/O\.$ARCH" || true; } | xargs -r sed -i "s#$OLD#$IOC#g"
 rm -f "$IOC/bin/$ARCH/adsIoc"; find "$IOC" -path "*/O.$ARCH" -type d -prune -exec rm -rf {} + 2>/dev/null || true
 make -C "$IOC" -j4 > "$OUT/build-$VAR-ioc.log" 2>&1
 ls -l "$IOC/bin/$ARCH/adsIoc"
