@@ -7,7 +7,7 @@ Follow this top to bottom on the new system. Every command was run on the bench 
 | Where | What | Ref |
 |---|---|---|
 | `lcls-plc-motion-abstraction-sample`, branch `enh_mcs2_integrated_nc_regression` | `PREFIX := PLC:TST` in the IOC Makefile; `st.cmd` and `envPaths` regenerated with pytmc 2.22.1; `bsd-setup.md` added; `scripts/test/*` removed (47 files) | commit `9782ad7` |
-| `twincat-ads`, branch `feature/network-resilience-profiling` | `profiling/`: patches, harness scripts, evidence, report, plan, this guide | commits `29bc3b9` and the guide commit on top |
+| `twincat-ads`, branch `enh_network_resilience_profiling` | `profiling/`: patches, harness scripts, evidence, report, plan, this guide | commits `29bc3b9` and the guide commit on top |
 
 The driver patches are not applied to any source tree. They are applied to a copy of the site module by `build-profiling-ioc.sh` (step 4), so nothing in the real driver changes until you port them (plan section 9).
 
@@ -16,7 +16,7 @@ Neither branch was pushed when this was written. Push them, or move them with `g
 ## 1. Get the code
 
     git clone https://github.com/yannS2016/twincat-ads.git
-    git -C twincat-ads checkout feature/network-resilience-profiling
+    git -C twincat-ads checkout enh_network_resilience_profiling
     git clone https://github.com/yannS2016/lcls-plc-motion-abstraction-sample.git
     git -C lcls-plc-motion-abstraction-sample checkout enh_mcs2_integrated_nc_regression
 
