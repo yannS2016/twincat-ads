@@ -11,7 +11,7 @@ Follow this top to bottom on the new system. Every command was run on the bench 
 
 The driver patches are not applied to any source tree. They are applied to a copy of the site module by `build-profiling-ioc.sh` (step 4), so nothing in the real driver changes until you port them (plan section 9).
 
-Neither branch was pushed when this was written. Push them, or move them with `git bundle create x.bundle <branch>` and `git clone x.bundle`.
+Push both branches before starting (`git push -u origin <branch>` in each clone), so the other system can clone them.
 
 ## 1. Get the code
 
