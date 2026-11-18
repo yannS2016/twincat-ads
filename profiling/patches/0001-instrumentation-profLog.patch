@@ -1,0 +1,155 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp
++++ b/adsApp/src/adsAsynPortDriver.cpp
+@@ -47,6 +47,26 @@
+ #include <unordered_map>
+ 
+ static const char* driverName = "adsAsynPortDriver";
++
++/* PROFILING instrumentation: timestamped, unthrottled, log-only. */
++#include <stdarg.h>
++static void profLog(const char* tag, const char* fmt, ...)
++{
++    struct timeval tv;
++    gettimeofday(&tv, NULL);
++    struct tm tmv;
++    time_t t = tv.tv_sec;
++    localtime_r(&t, &tmv);
++    char ts[32];
++    strftime(ts, sizeof ts, "%H:%M:%S", &tmv);
++    char msg[512];
++    va_list ap;
++    va_start(ap, fmt);
++    vsnprintf(msg, sizeof msg, fmt, ap);
++    va_end(ap);
++    fprintf(stderr, "PROF %s.%03d %s %s\n", ts, (int)(tv.tv_usec / 1000), tag, msg);
++    fflush(stderr);
++}
+ static adsAsynPortDriver* adsAsynPortObj;
+ static long oldTimeStamp               = 0;
+ static struct timeval oldTime          = {0};
+@@ -580,6 +600,8 @@
+ 
+         if (rc != 0)
+         {
++            profLog("HANDLE_CHUNK_FAIL", "fn=%s chunk=%zu/%zu rc=0x%lx n=%zu", functionName,
++                    chunk + 1, nChunks, rc, chunkN);
+             asynPrint(pasynUserSelf,
+                       ASYN_TRACE_ERROR,
+                       "%s::%s: chunk %zu/%zu SUMUP failed rc=0x%lx — "
+@@ -649,6 +671,7 @@
+                   N);
+     }
+ 
++    profLog("HANDLES_DONE", "resolved=%zu total=%zu", totalResolved, N);
+     asynPrint(pasynUserSelf,
+               ASYN_TRACE_ERROR,
+               "%s::%s: complete — %zu/%zu handles resolved, %zu will use ADS fallback\n",
+@@ -822,6 +845,8 @@
+ 
+         if (rc != 0)
+         {
++            profLog("HANDLE_CHUNK_FAIL", "fn=%s chunk=%zu/%zu rc=0x%lx n=%zu", functionName,
++                    chunk + 1, nChunks, rc, chunkN);
+             asynPrint(pasynUserSelf,
+                       ASYN_TRACE_ERROR,
+                       "%s::%s: chunk %zu/%zu SUMUP failed rc=0x%lx — "
+@@ -940,6 +965,7 @@
+                   totalOK);
+     }
+ 
++    profLog("SYMINFO_DONE", "resolved=%zu failed=%zu", totalOK, totalFail);
+     asynPrint(pasynUserSelf,
+               ASYN_TRACE_ERROR,
+               "%s::%s: complete — %zu resolved, %zu failed (ADS fallback for misses)\n",
+@@ -1353,6 +1379,13 @@
+                 port->adsState = ADSSTATE_INVALID;
+             }
+ 
++            if (stat != asynSuccess || port->adsState != port->adsStateOld)
++            {
++                profLog("CYCLIC_STATE",
++                        "port=%u stat=%d err=%ld state=%d->%d notConn=%d",
++                        port->amsPort, (int)stat, error, (int)port->adsStateOld,
++                        (int)port->adsState, notConnectedCounter_);
++            }
+             port->connectedOld = port->connected;
+             port->connected    = portConnected;
+             port->paramsOK     = portConnected;
+@@ -1361,10 +1394,12 @@
+ 
+             if (port->connected && port->refreshNeeded)
+             {
++                profLog("REFRESH_CALL", "port=%u connectedAds=%d", port->amsPort, (int)connectedAds_);
+                 refreshParamsLock(amsClientPort, port->amsPort);
+             }
+             if (port->connectedOld && !port->connected)
+             {
++                profLog("CONN_LOST", "port=%u", port->amsPort);
+                 invalidateParamsLock(port->amsPort);
+                 port->refreshNeeded = true;
+                 setAlarmPortLock(port->amsPort, COMM_ALARM, INVALID_ALARM);
+@@ -1440,6 +1475,7 @@
+         }
+         if (notConnectedCounter_ > 1)
+         {
++            profLog("EXIT_NEG1", "notConnectedCounter=%d", notConnectedCounter_);
+             asynPrint(pasynUserSelf,
+                       ASYN_TRACE_ERROR,
+                       "cyclicThread: failed to re-establish connection to ams server... exiting "
+@@ -1458,6 +1494,7 @@
+                           functionName);
+             }
+             connectedAds_ = 0;
++            profLog("CONNECTEDADS0", "notConn=%d", notConnectedCounter_);
+             if ((notConnectedCounter_ & 2) == 2)
+             {
+                 asynPrint(pasynUserSelf,
+@@ -1547,7 +1584,9 @@
+                                                 &bytesRead);
+                 if (status)
+                 {
+-                    printf("Sum read %d failed: status %ld\n", i, status);
++                    profLog("BULK_FAIL",
++                            "grp=%d status=%ld cnt=%u readSize=%d bulkOK=%d connectedAds=%d",
++                            i, status, (unsigned)cnt, (int)readSize, (int)bulkOK, (int)connectedAds_);
+                     continue;
+                 }
+ 
+@@ -1861,6 +1900,9 @@
+     const char* functionName = "refreshParams";
+     asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+ 
++    profLog("REFRESH_ENTER", "port=%u connectedAds=%d paramCount=%d bulk0.readSize=%d bulk0.cnt=%u",
++            amsPort, (int)connectedAds_, adsParamArrayCount_, (int)bulk[0].readSize,
++            (unsigned)bulk[0].cnt);
+     if (connectedAds_)
+     {
+         if (adsParamArrayCount_ > 1)
+@@ -1889,6 +1931,8 @@
+             }
+         }
+     }
++    profLog("REFRESH_EXIT", "port=%u setting bulkOK=1 connectedAds=%d bulk0.readSize=%d",
++            amsPort, (int)connectedAds_, (int)bulk[0].readSize);
+     bulkOK = 1;
+     return asynSuccess;
+ }
+@@ -1915,6 +1959,8 @@
+     const char* functionName = "invalidateParams";
+     asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s:%s:\n", driverName, functionName);
+ 
++    profLog("INVALIDATE", "port=%u bulkOK 0 (was %d) bulk0.readSize=%d", amsPort, (int)bulkOK,
++            (int)bulk[0].readSize);
+     bulkOK = 0;
+     if (adsParamArrayCount_ > 1)
+     {
+@@ -2494,6 +2540,9 @@
+     bulk[paramInfo->bulkIndex].sum[paramInfo->bulkOffset].iOffset = offset;
+     bulk[paramInfo->bulkIndex].sum[paramInfo->bulkOffset].iSize   = paramInfo->plcSize;
+     bulk[paramInfo->bulkIndex].readSize += paramInfo->plcSize + sizeof(uint32_t);
++    profLog("BULK_ADD", "idx=%d readSize=%d cnt=%u refreshNeeded=%d", (int)paramInfo->bulkIndex,
++            (int)bulk[paramInfo->bulkIndex].readSize, (unsigned)bulk[paramInfo->bulkIndex].cnt,
++            (int)paramInfo->refreshNeeded);
+ 
+     return asynSuccess;
+ }

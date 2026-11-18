@@ -1,0 +1,2 @@
+outcome,stall_ms,first_fail_s,n_bulk_fail,n_1797,ioc_rc,exit_after_s,run_dir
+RECOVERED,8000,5.0,1,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-173809-L8000-r1

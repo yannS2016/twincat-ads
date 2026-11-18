@@ -1,0 +1,3 @@
+17:38:10 trial stall=8000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-173809-L8000-r1
+RECOVERED,8000,5.0,1,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-173809-L8000-r1
+17:41:00 trial stall=8000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-174059-L8000-r2

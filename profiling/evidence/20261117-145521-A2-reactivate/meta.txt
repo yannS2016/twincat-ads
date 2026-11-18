@@ -1,0 +1,19 @@
+holdoff=15
+scenario=A2-reactivate
+start=2026-11-17T14:55:21-08:00
+ioc_bin=/home/claude-agent/twincat-ads/profiling/ads-ioc-prof/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=974a0330f3743c809b38d7b92e4c1a4e
+epicsEnvSet("IPADDR",           "192.168.0.9")
+epicsEnvSet("AMSID",            "192.168.0.9.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=1e4c2c1
+scenario=A2-reactivate
+start=2026-11-17T14:57:44-08:00
+ioc_bin=/home/claude-agent/twincat-ads/profiling/ads-ioc-prof/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=974a0330f3743c809b38d7b92e4c1a4e
+epicsEnvSet("IPADDR",           "192.168.0.9")
+epicsEnvSet("AMSID",            "192.168.0.9.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=1e4c2c1

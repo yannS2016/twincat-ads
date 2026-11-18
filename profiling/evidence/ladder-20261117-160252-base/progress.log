@@ -1,0 +1,43 @@
+16:02:54 trial stall=1000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-160253-L1000-r1
+NOEFFECT,1000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-160253-L1000-r1
+16:05:35 trial stall=2000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-160534-L2000-r1
+NOEFFECT,2000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-160534-L2000-r1
+16:08:19 trial stall=3000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-160818-L3000-r1
+NOEFFECT,3000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-160818-L3000-r1
+16:11:02 trial stall=4000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-161101-L4000-r1
+NOEFFECT,4000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-161101-L4000-r1
+16:13:48 trial stall=5000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-161346-L5000-r1
+NOEFFECT,5000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-161346-L5000-r1
+16:16:33 trial stall=6000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-161632-L6000-r1
+STUCK,6000,5.3,916,915,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-161632-L6000-r1
+16:19:20 trial stall=8000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-161919-L8000-r1
+STUCK,8000,5.2,901,900,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-161919-L8000-r1
+16:22:10 trial stall=1000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-162209-L1000-r2
+NOEFFECT,1000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-162209-L1000-r2
+16:24:51 trial stall=2000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-162450-L2000-r2
+NOEFFECT,2000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-162450-L2000-r2
+16:27:35 trial stall=3000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-162734-L3000-r2
+NOEFFECT,3000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-162734-L3000-r2
+16:30:19 trial stall=4000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-163018-L4000-r2
+NOEFFECT,4000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-163018-L4000-r2
+16:33:04 trial stall=5000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-163303-L5000-r2
+NOEFFECT,5000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-163303-L5000-r2
+16:35:50 trial stall=6000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-163549-L6000-r2
+STUCK,6000,5.6,916,915,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-163549-L6000-r2
+16:38:37 trial stall=8000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-163836-L8000-r2
+STUCK,8000,5.1,908,907,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-163836-L8000-r2
+16:41:27 trial stall=1000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-164126-L1000-r3
+NOEFFECT,1000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-164126-L1000-r3
+16:44:08 trial stall=2000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-164407-L2000-r3
+NOEFFECT,2000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-164407-L2000-r3
+16:46:52 trial stall=3000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-164651-L3000-r3
+NOEFFECT,3000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-164651-L3000-r3
+16:49:35 trial stall=4000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-164934-L4000-r3
+NOEFFECT,4000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-164934-L4000-r3
+16:52:21 trial stall=5000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-165220-L5000-r3
+NOEFFECT,5000,,0,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-165220-L5000-r3
+16:55:06 trial stall=6000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-165505-L6000-r3
+RECOVERED,6000,5.2,1,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-165505-L6000-r3
+16:57:54 trial stall=8000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-165753-L8000-r3
+STUCK,8000,5.0,895,894,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-165753-L8000-r3
+17:00:43 LADDER_DONE

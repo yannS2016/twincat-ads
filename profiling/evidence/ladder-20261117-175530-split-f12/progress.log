@@ -1,0 +1,11 @@
+17:55:31 trial stall=8000ms rep=1 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-175530-L8000-r1
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/home/claude-agent/twincat-ads/profiling/runs/20261117-175530-L8000-r1
+17:58:20 trial stall=8000ms rep=2 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-175819-L8000-r2
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/home/claude-agent/twincat-ads/profiling/runs/20261117-175819-L8000-r2
+18:01:10 trial stall=8000ms rep=3 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-180109-L8000-r3
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/home/claude-agent/twincat-ads/profiling/runs/20261117-180109-L8000-r3
+18:04:00 trial stall=8000ms rep=4 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-180359-L8000-r4
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/home/claude-agent/twincat-ads/profiling/runs/20261117-180359-L8000-r4
+18:06:49 trial stall=8000ms rep=5 run=/home/claude-agent/twincat-ads/profiling/runs/20261117-180648-L8000-r5
+RECOVERED,8000,5.0,1,0,,,desync=0,f12skips=1,/home/claude-agent/twincat-ads/profiling/runs/20261117-180648-L8000-r5
+18:09:38 LADDER_DONE

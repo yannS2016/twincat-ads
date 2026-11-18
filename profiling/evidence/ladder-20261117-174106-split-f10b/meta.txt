@@ -1,0 +1,1 @@
+ioc_dir=/home/claude-agent/twincat-ads/profiling/ads-ioc-fix first=85 observe=60

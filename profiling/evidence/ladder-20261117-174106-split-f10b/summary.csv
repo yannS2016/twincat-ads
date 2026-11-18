@@ -1,0 +1,6 @@
+outcome,stall_ms,first_fail_s,n_bulk_fail,n_1797,ioc_rc,exit_after_s,run_dir
+RECOVERED,8000,5.0,1,0,,,/home/claude-agent/twincat-ads/profiling/runs/20261117-174106-L8000-r1
+EXIT,8000,5.0,2,0,255,51.0,desync=339,f12skips=0,/home/claude-agent/twincat-ads/profiling/runs/20261117-174356-L8000-r2
+EXIT,8000,5.0,2,0,255,51.0,desync=699,f12skips=0,/home/claude-agent/twincat-ads/profiling/runs/20261117-174645-L8000-r3
+EXIT,8000,5.0,2,0,255,52.0,desync=343,f12skips=0,/home/claude-agent/twincat-ads/profiling/runs/20261117-174935-L8000-r4
+EXIT,8000,5.0,2,0,255,52.0,desync=3,f12skips=0,/home/claude-agent/twincat-ads/profiling/runs/20261117-175224-L8000-r5

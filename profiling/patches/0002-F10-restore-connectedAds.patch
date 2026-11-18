@@ -1,0 +1,16 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp
++++ b/adsApp/src/adsAsynPortDriver.cpp
+@@ -1395,6 +1395,13 @@
+             if (port->connected && port->refreshNeeded)
+             {
+                 profLog("REFRESH_CALL", "port=%u connectedAds=%d", port->amsPort, (int)connectedAds_);
++                if (!connectedAds_)
++                {
++                    /* FIX F10: the state read succeeded, so the ADS connection is usable again. Without this,
++                     * refreshParams() skips its rebuild and bulk reads run with readSize=16 forever. */
++                    profLog("FIX_CONNECTEDADS", "port=%u restoring connectedAds_=1", port->amsPort);
++                    connectedAds_ = 1;
++                }
+                 refreshParamsLock(amsClientPort, port->amsPort);
+             }
+             if (port->connectedOld && !port->connected)

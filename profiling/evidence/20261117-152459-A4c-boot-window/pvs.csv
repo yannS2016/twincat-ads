@@ -1,0 +1,21 @@
+15:25:01.841,watcher,start,5 pvs,,
+15:25:59.154,PLC:TST:LCLSGeneral:LogMessageCount_RBV,connected,,,
+15:25:59.154,PLC:TST:AccumulatedFastFaults_RBV,connected,,,
+15:25:59.154,TST:SM:M1.RBV,connected,,,
+15:25:59.155,TST:SM:M1.SEVR,connected,,,
+15:25:59.155,TST:SM:M2.RBV,connected,,,
+15:25:59.155,PLC:TST:LCLSGeneral:LogMessageCount_RBV,value,0,0,0
+15:25:59.155,PLC:TST:AccumulatedFastFaults_RBV,value,0,0,0
+15:25:59.155,TST:SM:M1.RBV,value,0.0,3,14
+15:25:59.155,TST:SM:M1.SEVR,value,3,3,14
+15:25:59.155,TST:SM:M2.RBV,value,0.0,3,14
+15:26:01.335,PLC:TST:LCLSGeneral:LogMessageCount_RBV,value,17,0,0
+15:26:01.453,TST:SM:M1.SEVR,value,0,0,0
+15:26:39.221,TST:SM:M1.SEVR,value,3,3,14
+15:26:39.262,PLC:TST:LCLSGeneral:LogMessageCount_RBV,value,17,3,9
+15:26:39.264,PLC:TST:AccumulatedFastFaults_RBV,value,0,3,9
+15:26:45.297,PLC:TST:LCLSGeneral:LogMessageCount_RBV,DISCONNECTED,,,
+15:26:45.297,PLC:TST:AccumulatedFastFaults_RBV,DISCONNECTED,,,
+15:26:45.297,TST:SM:M1.RBV,DISCONNECTED,,,
+15:26:45.297,TST:SM:M1.SEVR,DISCONNECTED,,,
+15:26:45.297,TST:SM:M2.RBV,DISCONNECTED,,,

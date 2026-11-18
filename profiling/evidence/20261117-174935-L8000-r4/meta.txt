@@ -1,0 +1,9 @@
+scenario=L8000
+start=2026-11-17T17:49:36-08:00
+ioc_bin=/home/claude-agent/twincat-ads/profiling/ads-ioc-fix/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=443854c87785424da60d2b7a0f61608d
+epicsEnvSet("IPADDR",           "192.168.0.6")
+epicsEnvSet("AMSID",            "192.168.0.9.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=1e4c2c1

@@ -1,0 +1,26 @@
+Some funny learning today: if you have two IOCs running on the same server pointing to the same PLC with the latest versions, they start a duel where the second IOC crashes the first IOC on boot, and then procServ reboots it and then it crashes the other one, and then this repeats infinitely
+
+
+2026/09/18 17:51:39.285 [adsAsynPortDriver.cpp:5845] adsAsynPortDriver:adsWriteParam: ADS write failed with: ADSERR_CLIENT_SYNCTIMEOUT (0x745)
+2026/09/18 17:51:39.285 [devAsynFloat64.c:363] PLC:LFE:VAC:XRT:Downstream:PMON:EPICSLink devAsynFloat64::processCallbackOutput process write error 
+PV: PLC:LFE:VAC:XRT:Downstream:PMON:EPICSLink:LinkSeverity Active scan count exceeded!
+
+2026/09/18 17:51:39.286 [adsAsynPortDriver.cpp:1371] adsAsynPortDriver:cyclicThread: connection lost for port 851
+Sum read 0 failed: status 1861
+2026-09-18T17:51:40-0700 Warning: InvokeId mismatch: waiting for 0x5c48 received 0x5c45
+2026-09-18T17:51:40-0700 Warning: No response pending
+2026-09-18T17:51:40-0700 Warning: InvokeId mismatch: waiting for 0x5c49 received 0x5c46
+2026-09-18T17:51:40-0700 Warning: No response pending
+2026-09-18T17:51:40-0700 Warning: InvokeId mismatch: waiting for 0x0 received 0x5c47
+2026-09-18T17:51:40-0700 Warning: No response pending
+2026/09/18 17:51:40.747 [adsAsynPortDriver.cpp:1389] adsAsynPortDriver:cyclicThread: Device "Plc30 App" disconnected (Ams-port 851, Ams router version 3.1.2043).
+2026/09/18 17:51:40.747 [adsAsynPortDriver.cpp:1412] adsAsynPortDriver:cyclicThread: Ams-port, 851, state change: "ADSSTATE_RUN" -> "ADSSTATE_INVALID".
+2026/09/18 17:51:40.747 [adsAsynPortDriver.cpp:1454] adsAsynPortDriver:cyclicThread: No connection! Try to reconnect...
+2026/09/18 17:51:41.257 [adsAsynPortDriver.cpp:1389] adsAsynPortDriver:cyclicThread: Device "Plc30 App" connected (Ams-port 851, Ams router version 3.1.2043).
+2026/09/18 17:51:41.257 [adsAsynPortDriver.cpp:1412] adsAsynPortDriver:cyclicThread: Ams-port, 851, state change: "ADSSTATE_INVALID" -> "ADSSTATE_RUN".
+Sum read 0 failed: status 1797
+
+
+Hardenning --> PLC seems to clear its previous ahandle because
+
+A bit of discovery about ads-ioc: when the ioc host falls off the network, this causes a connection loss to the PLC, which triggers an internal reconnection attempt from the ads-ioc, which may or may not succeed. But when the ads-ioc does reconnect to the PLC, it seems the PLC treats this reconnection as a fresh one, losing the previously established handshakes it made to resolve the DB symbols against the ADS handles. causing the notorious Sum read 0 failed: status 1797 . The ads-ioc will need some hardening to recover the connection cleanly.

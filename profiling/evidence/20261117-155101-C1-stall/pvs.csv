@@ -1,0 +1,11 @@
+15:51:03.349,watcher,start,5 pvs,,
+15:52:08.851,PLC:TST:LCLSGeneral:LogMessageCount_RBV,connected,,,
+15:52:08.852,PLC:TST:AccumulatedFastFaults_RBV,connected,,,
+15:52:08.852,TST:SM:M1.RBV,connected,,,
+15:52:08.852,TST:SM:M1.SEVR,connected,,,
+15:52:08.852,TST:SM:M2.RBV,connected,,,
+15:52:08.852,PLC:TST:LCLSGeneral:LogMessageCount_RBV,value,17,0,0
+15:52:08.852,PLC:TST:AccumulatedFastFaults_RBV,value,0,0,0
+15:52:08.852,TST:SM:M1.RBV,value,0.0,0,0
+15:52:08.853,TST:SM:M1.SEVR,value,0,0,0
+15:52:08.853,TST:SM:M2.RBV,value,0.0,0,0
