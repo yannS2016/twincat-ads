@@ -1,0 +1,3 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+EXIT,,0,298,139,2.2,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-124317-t28k-base/r1
+EXIT,,0,0,139,,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-124317-t28k-base/r2

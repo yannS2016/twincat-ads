@@ -1,0 +1,2 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+STUCK,14.5,0,1740,,130.0,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-131235-t28k-f12noexit-long/r1

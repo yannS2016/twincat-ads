@@ -1,0 +1,1 @@
+ioc_dir=/tmp/ysm-prof/ads-ioc-f12noexit steady=10 observe=130

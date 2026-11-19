@@ -1,0 +1,5 @@
+12:43:18 trial 1/2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-124317-t28k-base/r1
+EXIT,,0,298,139,2.2,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-124317-t28k-base/r1
+12:46:51 trial 2/2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-124317-t28k-base/r2
+EXIT,,0,0,139,,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-124317-t28k-base/r2
+12:50:30 INJECT_DONE

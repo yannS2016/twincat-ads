@@ -1,0 +1,7 @@
+12:54:31 trial 1/3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-125430-t28k-f15bnoexit/r1
+RECOVERED,14.6,0,498,,2.9,2,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-125430-t28k-f15bnoexit/r1
+12:59:06 trial 2/3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-125430-t28k-f15bnoexit/r2
+RECOVERED,15.0,0,498,,3.0,2,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-125430-t28k-f15bnoexit/r2
+13:03:46 trial 3/3 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-125430-t28k-f15bnoexit/r3
+RECOVERED,14.5,0,498,,2.7,2,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-125430-t28k-f15bnoexit/r3
+13:08:27 INJECT_DONE

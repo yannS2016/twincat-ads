@@ -1,0 +1,5 @@
+group BULK_FAIL: 0  per-symbol failed reads: 1740
+13:15:36.306 REFRESH_ENTER port=851 connectedAds=1 paramCount=34280 bulk0.readSize=16 bulk0.cnt=500
+13:16:32.142 REFRESH_EXIT port=851 setting bulkOK=1 connectedAds=1 bulk0.readSize=5992
+13:16:32.158 REFRESH_ENTER port=851 connectedAds=1 paramCount=34280 bulk0.readSize=16 bulk0.cnt=500
+13:17:27.899 REFRESH_EXIT port=851 setting bulkOK=1 connectedAds=1 bulk0.readSize=5992
