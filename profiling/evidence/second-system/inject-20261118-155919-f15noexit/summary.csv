@@ -1,0 +1,4 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+STUCK,14.0,0,196,,99.8,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-155919-f15noexit/r1
+NOEFFECT,14.6,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-155919-f15noexit/r2
+NOEFFECT,13.9,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-155919-f15noexit/r3

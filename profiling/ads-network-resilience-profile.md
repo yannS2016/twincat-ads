@@ -169,6 +169,22 @@ A TwinCAT reactivation in XAE is two steps: "Activate Configuration" (uploads `C
 
 So after a real PLC restart the symbolic handles obtained at boot are gone from the PLC (0x710), and the driver's refresh does not obtain new ones. F10 is necessary but not sufficient here (it was sufficient for stalls, which do not change the PLC's handles). This confirms H4 on this PLC. A restart of the IOC (the shipped `exit(-1)` path) re-resolves the handles, which is why the shipped driver only fails permanently when it survives the event. Evidence: `evidence/second-system/react-A1`, `react-B1`, `inj-C1`, `inj-D1-noexit`, `inj-D2-f12noexit`, `inj-D3-f12noexitdbg` (each with `summary.txt` where counts were taken).
 
+#### Prototype fixes for F15 (builds that do not exit, Reset injected with `inject_trial.sh`)
+
+Patch 0006 (F15) re-resolves all symbol handles in `refreshParams` before the parameters are rebuilt. Patch 0007 (F15b) gets a new handle per symbol for reads that return 0x710 and is retried every 5 s from the cyclic thread. Outcome is measured over 100 s after the Reset (`classify_inject.py`).
+
+| Build | Trials | Outcome |
+|---|---|---|
+| `f15noexit` (F10 + F12 + F15) | 3 | 2 NOEFFECT (0 failed reads), 1 STUCK: 4 symbols kept returning 0x710 for the whole 100 s (196 failed reads) |
+| `f15bnoexit` (F10 + F12 + F15 + F15b) | 5 | 5 NOEFFECT, 0 failed reads, refresh about 15 s each |
+| `f15bonly` (F10 + F12 + F15b, no F15) | 3 | not usable, see below |
+
+The first `f15bonly` build deadlocked in 1 of 2 trials (the new function took the asyn lock while the bulk thread holds `bulkReadInfoMutex_` and then takes the asyn lock; fixed in patch 0007). After the fix a batch was started but interrupted, and **one IOC was left running overnight against the PLC** (run `inject-20261118-171556-f15bonly2/r2`). It stayed stuck from 17:19 to 23:17 with about 450 failed 0x710 reads per second (9.7 million in total, 1.6 million per hour) and the F15b path did not stop the failures: its first call logged 7155 new handles at 21:59 and the failures only ended at 23:17:15. The PLC logged about 3500 `CAdsWatchServerR0::AdsGetDynSymbolArrayEntry, Handle(0x1801aad), m_nDynSymbolPools(2000)` errors, which are most likely these stale-handle reads. Conclusions so far:
+
+- F15 alone is not enough (1 of 3 left 4 symbols stale), F15 + F15b worked in 5 of 5, and F15b alone is not reliable and needs another look (why a per-symbol retry took hours and did not stop the reads).
+- A stuck driver is not harmless to the PLC. Every stale read is a PLC-side error, at about 450 per second here. Any fix needs a bounded retry with backoff, and any experiment must be time-limited (`inject_trial.sh` stops each trial; do not run a driver build that survives a restart without a watchdog).
+- Open risk: F15 asks the PLC for 7352 new handles on every refresh and never releases the old ones. After a restart they are gone anyway, but a stall recovery runs the same refresh with valid old handles, so each stall could leak 7352 PLC handles. Check the PLC's dynamic handle limit and release old handles before re-resolving before this is used anywhere.
+
 ## Findings
 
 | ID | Finding | Verdict | Evidence |
@@ -187,6 +203,7 @@ So after a real PLC restart the symbolic handles obtained at boot are gone from 
 | F13 | After every recovery the PLC sends a "Symbols changed" notification, so the IOC refreshes twice. Each refresh takes about 11 s for 7363 params with bulk reads paused. Data is stale for about 25 s after a stall that ends in recovery. | Observed (fix build) | run `20261117-170055-L6000-r1`: `REFRESH_EXIT` 17:02:39.0, then `adsSymbolsChangedCallback` and a second refresh to 17:02:51 |
 | F14 | `exit(-1)` runs while the bulk thread is still issuing ADS calls on the dying socket. In one field run the IOC then died with SIGSEGV (core dumped), not exit code 255. | Observed once (user `ioc.log` 13:49:45) | "Sum read 2 failed: status -1" then "Segmentation fault (core dumped)". Not seen in my 9 exits (all code 255). A fix needs the threads stopped before exit. |
 | F15 | After a real PLC restart (Write Control RESET to port 10000) the PLC is away about 14 s and its symbolic handles are invalid. A driver that survives and has F10 fixed still fails every symbol read with 0x710 until the IOC restarts. | Confirmed (`f12noexit`, `f12noexitdbg`) | `evidence/second-system/inj-D2-f12noexit`, `inj-D3-f12noexitdbg/summary.txt` |
+| F16 | A driver that survives a PLC restart and is stuck on stale handles keeps issuing failing reads at about 450 per second and the PLC logs an error for each (`AdsGetDynSymbolArrayEntry`, about 3500 seen). Nothing throttles or backs off. | Confirmed (`inject-20261118-171556-f15bonly2/r2`, 6 h) | evidence summary.txt |
 | F7 | `Sum read N failed` is an unthrottled `printf` with no timestamp, interleaved with other output. | Confirmed in code | `bulkReadThread`, line 1550 in 1.1.1 |
 
 ## Hypotheses still open

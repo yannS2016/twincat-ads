@@ -1,0 +1,22 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 15:49:02.043433777 -0800
++++ b/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 15:49:02.068433263 -0800
+@@ -1911,6 +1911,19 @@
+             (unsigned)bulk[0].cnt);
+     if (connectedAds_)
+     {
++        if (!symbolDict_.empty() && (amsPort == 0 || amsPort == amsportDefault_))
++        {
++            /* FIX F15: the symbolic handles in symbolDict_ were obtained at boot. After a PLC restart the PLC
++             * no longer knows them (reads fail with 0x710), and updateParamInfoWithPLCInfo() below copies them
++             * from the dict. Mark them unresolved and resolve them again; whatever fails to resolve takes the
++             * per-symbol path in updateParamInfoWithPLCInfo(). */
++            for (auto& kv : symbolDict_)
++            {
++                kv.second.resolved = false;
++            }
++            profLog("FIX_F15_REHANDLE", "port=%u re-resolving %zu symbol handles", amsPort, symbolDict_.size());
++            resolveSymbolHandles(amsClientPort);
++        }
+         if (adsParamArrayCount_ > 1)
+         {
+             //Renew data notification callbacks

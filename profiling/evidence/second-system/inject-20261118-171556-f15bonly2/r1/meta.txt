@@ -1,0 +1,9 @@
+scenario=inject-f15bonly2
+start=2026-11-18T17:15:57-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-f15bonly/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=ab34a4578e56b4cad952a4aec27f1e8f
+epicsEnvSet("IPADDR",           "134.79.165.33")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a

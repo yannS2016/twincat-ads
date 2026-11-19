@@ -1,0 +1,5 @@
+17:04:16 trial 1/2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-170415-f15bonly/r1
+RECOVERED,14.0,0,103,,28.7,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-170415-f15bonly/r1
+17:06:39 trial 2/2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-170415-f15bonly/r2
+NOEFFECT,14.4,0,0,,,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-170415-f15bonly/r2
+17:09:03 INJECT_DONE

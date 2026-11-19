@@ -1,0 +1,102 @@
+--- a/adsApp/src/adsAsynPortDriver.h	2026-11-18 16:10:34.341761620 -0800
++++ b/adsApp/src/adsAsynPortDriver.h	2026-11-18 16:10:34.367761087 -0800
+@@ -10,6 +10,7 @@
+ #include <vector>
+ #include "adsAsynPortDriverUtils.h"
+ #include "adsSymbolTable.h"
++#include <atomic>
+ #include <mutex>
+ #include <queue>
+ 
+@@ -113,6 +114,7 @@
+     asynStatus parsePlcInfofromDrvInfo(const char* drvInfo, adsParamInfo* paramInfo);
+     asynStatus refreshParams(uint16_t amsClientPort);
+     asynStatus refreshParams(uint16_t amsClientPort, uint16_t amsPort);
++    void rehandleFailedParams(uint16_t amsClientPort);
+     asynStatus invalidateParams(uint16_t amsPort);
+     asynStatus adsUpdateParameter(adsParamInfo* paramInfo, const void* data);
+     asynStatus adsUpdateParameter(adsParamInfo* paramInfo, const void* data, size_t dataSize);
+@@ -243,6 +245,7 @@
+     std::recursive_mutex threadIdToAmsClientPortMapMutex_;
+     std::unordered_map<std::string, int> createdParamsMap_;
+     std::mutex bulkReadInfoMutex_;
++    std::atomic<bool> handleRetryNeeded_{false}; // set by the bulk thread when a symbol read returns 0x710
+     std::queue<adsParamInfo*> arrayParamsToCallCallbacksFor_;
+ 
+     //octet
+--- a/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 16:10:34.343761579 -0800
++++ b/adsApp/src/adsAsynPortDriver.cpp	2026-11-18 17:15:18.133592936 -0800
+@@ -1346,6 +1346,7 @@
+ 
+     const char* functionName = "cyclicThread";
+     double sampleTime        = 0.5;
++    double lastRehandleTime  = 0;
+     while (1)
+     {
+         asynPrint(pasynUserSelf,
+@@ -1508,10 +1509,54 @@
+                 connect(pasynUserSelf);
+             }
+         }
++        /* FIX F15b: a read of one symbol can return 0x710 after the port refresh (the PLC re-created it later).
++         * Get a new handle for those symbols, at most every 5 s. */
++        if (oneAmsConnectionOK && handleRetryNeeded_)
++        {
++            double nowTime = epicsMonotonicGet() * 1e-9;
++            if (nowTime - lastRehandleTime > 5.0)
++            {
++                lastRehandleTime = nowTime;
++                rehandleFailedParams(amsClientPort);
++            }
++        }
+         oneAmsConnectionOKold_ = oneAmsConnectionOK;
+     }
+ }
+ 
++/** Gets new symbolic handles for the parameters whose bulk read failed with 0x710 and updates their bulk entry.
++ * Parameters that still fail keep refreshNeeded and are retried by the cyclic thread.
++ */
++void adsAsynPortDriver::rehandleFailedParams(uint16_t amsClientPort)
++{
++    handleRetryNeeded_ = false;
++    int fixed = 0, failed = 0;
++    // No asyn lock here: the bulk thread takes bulkReadInfoMutex_ and then the asyn lock (adsUpdateParameterLock),
++    // so taking them in the other order below would deadlock.
++    for (int i = 1; i < adsParamArrayCount_; i++)
++    {
++        adsParamInfo* p = &adsParamArray_[i];
++        if (!p->refreshNeeded || p->dataSource != ADS_DATASOURCE_PLC || p->isAdrCommand || p->bulkIndex < 0)
++        {
++            continue;
++        }
++        adsReleaseSymbolicHandle(amsClientPort, p, true);
++        if (adsGetSymHandleByName(amsClientPort, p) != asynSuccess)
++        {
++            handleRetryNeeded_ = true;
++            failed++;
++            continue;
++        }
++        {
++            std::lock_guard<std::mutex> lg(bulkReadInfoMutex_);
++            bulk[p->bulkIndex].sum[p->bulkOffset].iOffset = p->hSymbolicHandle;
++        }
++        p->refreshNeeded = false;
++        fixed++;
++    }
++    profLog("FIX_F15B_REHANDLE", "new handle for %d symbol(s), %d failed", fixed, failed);
++}
++
+ /* TBD - Poll at different rates depending on pollClass! */
+ void adsAsynPortDriver::bulkReadThread()
+ {
+@@ -1643,6 +1688,10 @@
+                                   j,
+                                   (unsigned)subStatus);
+                         paramInfo->refreshNeeded = true;
++                        if (subStatus == 0x710) // ADSERR_DEVICE_SYMBOLNOTFOUND: the PLC no longer knows the handle
++                        {
++                            handleRetryNeeded_ = true;
++                        }
+                     }
+                     paramInfo->plcTimeStampRaw  = nTimeStamp;
+                     paramInfo->lastCallbackSize = paramInfo->plcSize;

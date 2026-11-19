@@ -1,0 +1,6 @@
+The raw log was deleted (2.2 GB) before it was trimmed, so ioc.filtered.log.gz is missing for this run. Numbers below were read from it beforehand.
+Build f15bonly (0001-0005 + 0007), Reset injected 17:18:48, IOC left running until 2026-11-19 10:24 (stuck, stopped by hand).
+0x710 sub-read failures per hour (hour: count): 17: 1101759, 18: 1624195, 19: 1630289, 20: 1627541, 21: 1616476, 22: 1625114, 23: 471178
+First failure 17:19:17.283, last 23:17:15.128 (about 6 h at about 450 per second, 9.7 million in total).
+FIX_F15B_REHANDLE: 21:59:28 (7155 symbols, 0 failed), 23:17:15 (4097 symbols, 0 failed), 23:17:15 (6 symbols, 0 failed).
+The failures continued after the 21:59 call and stopped only at 23:17:15.

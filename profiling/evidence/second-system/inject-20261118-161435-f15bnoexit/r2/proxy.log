@@ -1,0 +1,12 @@
+16:17:00.481 PROXY LISTEN 134.79.165.33:48898 -> 172.21.148.154:48898 mode=pause
+16:17:01.651 PROXY CONN_OPEN client=134.79.165.33:45278 target=172.21.148.154:48898
+16:17:31.489 PROXY INJECT_RESET write control state=2 to port 10000, src_port=30001
+16:17:31.492 PROXY PROBE_STATE t=+0.00s ams_error=0 result=0 ads_state=5
+16:17:31.492 PROXY INJECT_REPLY ams_error=0 result=0
+16:17:31.592 PROXY PROBE_STATE t=+0.10s ams_error=0 result=0 ads_state=6
+16:17:42.488 PROXY PROBE_SILENT t=+11.00s no reply for over 1 s
+16:17:42.589 PROXY PROBE_RESUMED after 1102 ms without a reply
+16:17:42.589 PROXY PROBE_STATE t=+11.10s ams_error=6 result=None ads_state=None
+16:17:44.911 PROXY PROBE_STATE t=+13.42s ams_error=0 result=0 ads_state=0
+16:17:45.315 PROXY PROBE_STATE t=+13.83s ams_error=0 result=0 ads_state=6
+16:17:45.520 PROXY PROBE_STATE t=+14.03s ams_error=0 result=0 ads_state=5

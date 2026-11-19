@@ -1,0 +1,9 @@
+scenario=inject-f15noexit
+start=2026-11-18T16:01:44-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-f15noexit/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=df23f89c7a99d5c7e0f8d60c6c693423
+epicsEnvSet("IPADDR",           "134.79.165.33")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=2a0014a

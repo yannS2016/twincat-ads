@@ -18,6 +18,8 @@ The sample IOC (`lcls-plc-motion-abstraction-sample`) links the **site** module 
 | `patches/0003-F12-receiveframe-skip.patch` | F12: AdsLib `ReceiveFrame` skips only the unread remainder after a timeout. Fixes the stream desync. |
 | `patches/0004-experiment-noexit.patch` | Experiment, not a fix: `cyclicThread` logs `EXIT_SKIPPED` instead of calling `exit(-1)`, so the IOC survives a PLC restart and the reconnect branch becomes reachable. |
 | `patches/0005-log-sub-read-status.patch` | Log only: adds the per-symbol status (for example `0x710`) to the `bulk read for ... failed` line. |
+| `patches/0006-F15-reresolve-handles.patch` | Prototype F15: `refreshParams` re-resolves all symbol handles (SUMUP) before rebuilding. Does not release the old handles yet. |
+| `patches/0007-F15b-rehandle-failed-symbols.patch` | Prototype F15b: new handle per symbol whose bulk read returned 0x710, retried every 5 s from `cyclicThread`. |
 
 `adsAsynPortDriver.1.1.1.orig.cpp` is the unmodified 1.1.1 driver, for reference.
 
@@ -26,7 +28,7 @@ The sample IOC (`lcls-plc-motion-abstraction-sample`) links the **site** module 
     SITE_MODULE=<twincat-ads R2.0.0-1.1.1 dir> ADS_IOC_SRC=<built ads-ioc R2.2.1 tree> \
         ./build-profiling-ioc.sh base|f10|f12 [out_dir]
 
-Variants: `base` (instrumentation), `f10` (+F10), `f12` (+F10 +F12), `noexit` (base +0004), `f12noexit` (f12 +0004), `f12noexitdbg` (f12noexit +0005). The script copies the module, applies the patches, builds, copies the ads-ioc tree, points it at the new module and relinks. Result: `<out>/ads-ioc-<variant>/bin/<arch>/adsIoc`. Use that directory as `ADS_IOC_DIR` below.
+Variants: `base` (instrumentation), `f10` (+F10), `f12` (+F10 +F12), `noexit` (base +0004), `f12noexit` (f12 +0004), `f12noexitdbg` (f12noexit +0005), `f15noexit` (+0006), `f15bnoexit` (+0007), `f15bonly` (f12noexitdbg +0007). The script copies the module, applies the patches, builds, copies the ads-ioc tree, points it at the new module and relinks. Result: `<out>/ads-ioc-<variant>/bin/<arch>/adsIoc`. Use that directory as `ADS_IOC_DIR` below.
 
 The sample IOC files need a regenerated `st.cmd` and database with pytmc 2.22.1 (2.21.1 fails on the array pragma `1..3 | 1..3`) and prefix `PLC:TST`. A long prefix makes records fail to create. See the report, "Test bed".
 
@@ -43,6 +45,8 @@ The sample IOC files need a regenerated `st.cmd` and database with pytmc 2.22.1 
 | `classify.py <run_dir>` | outcome of one trial: NOEFFECT, RECOVERED, STUCK, EXIT, SIGPIPE, plus desync count. |
 | `analyze.py <log>` | event timeline and summary of an IOC log. |
 | `watch_pvs.py <csv>` | PV watcher (pyepics). Set `EPICS_CA_ADDR_LIST` to the IOC host. |
+| `inject_trial.sh <tag> [repeats]` | Reset-injection trials: fresh proxy and IOC, one Write Control RESET to the PLC's system service (the PLC is away about 14 s), 100 s observation, classify, stop. Env: `IOCDIR`, `HOSTIP`, `PLCIP`, `REPO`, `STEADY`, `OBS`. Restarts the PLC each trial. Never leave an IOC build that survives the restart running unattended. |
+| `classify_inject.py <run_dir> [obs_s]` | outcome of one injection trial: NODETECT, NOEFFECT, RECOVERED, STUCK, EXIT, SIGPIPE, with group and per-symbol failure counts. |
 | `trim-evidence.sh <dest> <dir>...` | copy the committable part of run and ladder dirs (filtered log, proxy log, summary) into an evidence directory. |
 | `plc-side/disturb-network.ps1` | Windows PLC script. A firewall block does **not** stall an established TCP connection (tested), so it is kept for reference only. |
 

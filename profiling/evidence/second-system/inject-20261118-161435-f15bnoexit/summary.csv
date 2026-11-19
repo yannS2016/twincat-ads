@@ -1,0 +1,6 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+NOEFFECT,14.0,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-161435-f15bnoexit/r1
+NOEFFECT,14.0,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-161435-f15bnoexit/r2
+NOEFFECT,13.9,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-161435-f15bnoexit/r3
+NOEFFECT,14.0,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-161435-f15bnoexit/r4
+NOEFFECT,14.0,0,0,,,1,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261118-161435-f15bnoexit/r5
