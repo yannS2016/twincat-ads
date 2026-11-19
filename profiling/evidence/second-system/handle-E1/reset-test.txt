@@ -1,0 +1,4 @@
+Reset test 2026-11-19 11:35:57 (pyads, Write Control RESET, AdsState 2, DevState 0, no data, to port 10000; rc 0).
+Port 851: STOP (6) at +0 s, no reply (timeout 1861) until +15.0 s, RUN at +15.4 s.
+used_dyn: 7318 before, 0 after restart, 48 after resolving the same 50 names again (max 10000).
+Handle values identical before/after the restart: 2 of 50. Pre-restart handles: 2 ok, 48 error 1808 (symbol not found). New handles: 50 ok.
