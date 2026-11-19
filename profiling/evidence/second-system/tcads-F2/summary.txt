@@ -1,0 +1,6 @@
+tcads project re-activated on the PLC (172.21.148.154); TestIOC.db 26755 records, base build, one boot at 12:16:35, stopped by hand at about 12:20.
+Before the IOC (handle_usage.py, 12:15): max_dyn=50000 used_dyn=27977 (an existing ~28k IOC had resolved them). 60 of 60 sampled database names exist on the PLC.
+IOC: SYMINFO_DONE resolved=28041 failed=0, HANDLES_DONE resolved=28041 total=28041 (47 chunks of 500), first state poll 150 s after start, 40 s steady state: 0 BULK_FAIL, 0 failed sub-reads, 0 connection losses.
+4 symbol lookups failed (Main.M1/M2_EPICS_HOMPROC/HOMPOS, 0x710): they come from the motor section of st.cmd, not from the database or the PLC project change. 1 record could not be created (lsi record type, ProjectInfo Vendor).
+After the IOC: max_dyn=50000 used_dyn=27977 (unchanged, 20 s apart).
+Handle capacity seen on this PLC: 2000 (fresh project load, used 0), 10000 (used 2673 to 7318), 50000 (used 27977).
