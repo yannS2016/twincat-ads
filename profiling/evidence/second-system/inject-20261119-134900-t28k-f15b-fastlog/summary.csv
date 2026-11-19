@@ -1,0 +1,2 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+RECOVERED,14.5,0,2988,,0.3,2,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-134900-t28k-f15b-fastlog/r1

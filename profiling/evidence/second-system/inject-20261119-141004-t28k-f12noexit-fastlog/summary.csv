@@ -1,0 +1,2 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+STUCK,14.8,0,709664,,60.0,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-141004-t28k-f12noexit-fastlog/r1

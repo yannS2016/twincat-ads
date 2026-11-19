@@ -1,0 +1,3 @@
+group BULK_FAIL: 0  per-symbol failed reads: 6969
+14:09:11.403 EXIT_NEG1 notConnectedCounter=2
+14:09:15.738 IOC_RC=139

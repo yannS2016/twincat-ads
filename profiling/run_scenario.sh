@@ -33,9 +33,11 @@ echo "epicsEnvSet(\"IOC_DATA\", \"$STAGE/data\")" >> "$STAGE/envPaths"
 export IOC_COMMON=${IOC_COMMON:-/reg/d/iocCommon} EPICS_HOST_ARCH=rhel9-x86_64
 cd "$STAGE"
 echo "run dir: $RUN" >&2
-# stamp every raw line with wall-clock ms so unstamped printf/AdsLib lines can be placed on the timeline
+# stamp every raw line with wall-clock ms so unstamped printf/AdsLib lines can be placed on the timeline.
+# A perl stamper, not a shell loop with `date` per line: the instrumented IOC logs one line per parameter and a slow
+# reader blocks the IOC on its stdout pipe (boot and refresh took 150 s and 56 s with the `date` loop).
 tail -f /dev/null | "$ADS/bin/rhel9-x86_64/adsIoc" st.cmd 2>&1 \
-  | while IFS= read -r l; do printf '%s %s\n' "$(date +%H:%M:%S.%3N)" "$l"; done | tee -a "$RUN/ioc.raw.log"
+  | perl -MTime::HiRes=gettimeofday -MPOSIX=strftime -ne 'BEGIN{$|=1} my($s,$u)=gettimeofday; print strftime("%H:%M:%S",localtime($s)),sprintf(".%03d ",$u/1000),$_' | tee -a "$RUN/ioc.raw.log"
 # exit status of adsIoc itself (pipeline slot 1): 141=SIGPIPE, 139=SIGSEGV, 255=exit(-1), 134=abort
 RC=${PIPESTATUS[1]}
 echo "$(date +%H:%M:%S.%3N) IOC_RC=$RC" | tee -a "$RUN/ioc.raw.log" >> "$RUN/sim.log"

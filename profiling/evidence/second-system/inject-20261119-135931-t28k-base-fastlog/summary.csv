@@ -1,0 +1,4 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+EXIT,,0,5503,139,2.4,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-135931-t28k-base-fastlog/r1
+EXIT,,0,1519,139,2.6,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-135931-t28k-base-fastlog/r2
+EXIT,,0,6969,139,0.8,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-135931-t28k-base-fastlog/r3
