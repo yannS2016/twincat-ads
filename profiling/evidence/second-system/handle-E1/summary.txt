@@ -1,0 +1,1 @@
+used_dyn (ADS read 0xF00F, max_dyn 10000): 7159 before boot, 7318 after one IOC boot that resolved 7352/7352 (0 failures) and was stopped by SIGTERM, 7318 25 s later and after a pyads probe (100 get_handle requests for 5 names: 5 distinct handles, no change, release did not lower it).

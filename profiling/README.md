@@ -47,6 +47,7 @@ The sample IOC files need a regenerated `st.cmd` and database with pytmc 2.22.1 
 | `watch_pvs.py <csv>` | PV watcher (pyepics). Set `EPICS_CA_ADDR_LIST` to the IOC host. |
 | `inject_trial.sh <tag> [repeats]` | Reset-injection trials: fresh proxy and IOC, one Write Control RESET to the PLC's system service (the PLC is away about 14 s), 100 s observation, classify, stop. Env: `IOCDIR`, `HOSTIP`, `PLCIP`, `REPO`, `STEADY`, `OBS`. Restarts the PLC each trial. Never leave an IOC build that survives the restart running unattended. |
 | `classify_inject.py <run_dir> [obs_s]` | outcome of one injection trial: NODETECT, NOEFFECT, RECOVERED, STUCK, EXIT, SIGPIPE, with group and per-symbol failure counts. |
+| `handle_usage.py --plc <ip> --local-net-id <id>` | read-only: PLC symbol count and dynamic symbol handle limit and use (ADS Read, index group 0xF00F). Stop the IOC first if the Net ID is the IOC's. |
 | `trim-evidence.sh <dest> <dir>...` | copy the committable part of run and ladder dirs (filtered log, proxy log, summary) into an evidence directory. |
 | `plc-side/disturb-network.ps1` | Windows PLC script. A firewall block does **not** stall an established TCP connection (tested), so it is kept for reference only. |
 
