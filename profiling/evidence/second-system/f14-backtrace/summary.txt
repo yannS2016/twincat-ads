@@ -1,0 +1,13 @@
+F14: SIGSEGV after exit(-1), unpatched master tree (adsApp built from git HEAD, R2.2.0 ads-ioc), 28k project, injected PLC restart, core of trial 1 (gdb, binary with symbols for the driver and AdsLib).
+Crashing thread (EthercatMC motor poller, not an ads driver thread):
+ #0 AmsConnection::AdsRequest (this=0x134c270, request, timeout=5000) at AmsConnection.cpp:147   const auto status = router.GetLocalAddress(request.port, &srcAddr);
+ #1 AmsRouter::AdsRequest (this=GetRouter()::router) at AmsRouter.cpp:211
+ #2 AdsSyncReadWriteReqEx2 (port=30001, ...)
+ #3 adsAsynPortDriver::adsGetSymInfoByName
+ #4..#8 octetAdsReadByName / octetMotorHandleOneArg / octetCmdHandleInputLine / octetCMDwriteIt / writeOctet
+ #9..#12 asyn writeRead, EthercatMCController::writeReadOnErrorDisconnect
+ #13..#16 EthercatMCAxis::pollAll / poll, asynMotorController::asynMotorPoller
+Exiting thread (thread 15): adsAsynPortDriver::cyclicThread (adsAsynPortDriver.cpp:1553, exit(-1)) -> exit -> __run_exit_handlers -> epicsExitCallAtExits.
+bulkReadThread (thread 4) was still blocked in an ADS request.
+Cause: exit() from a worker thread runs the static destructors (AdsLib's function-local static GetRouter()::router) while the motor poller thread keeps sending ADS requests, so it uses a destroyed router.
+Results: unpatched master 3 of 3 IOC_RC=139; master + patch 0008 (fflush, _exit(255)) 3 of 3 IOC_RC=255.

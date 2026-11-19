@@ -3,13 +3,14 @@
 # service (restarts the TwinCAT system, the PLC is away about 14 s), observe, classify, stop.
 # Usage: inject_trial.sh <tag> [repeats=1]     Results: runs/inject-<ts>-<tag>/summary.csv
 # Env: IOCDIR (ioc dir of the build under test), REPO, HOSTIP, PLCIP, STEADY (s after first poll, default 10), OBS (s after the Reset, default 100),
+#      READY (grep pattern for the first state poll; use 'Device "Plc30 App" connected' for builds without PROF lines),
 #      BOOT (max s to wait for the first state poll, default 400), MAXLIFE (hard cap in s on the IOC and proxy processes, default 900)
 # IOC_NAME and DB_BASE (see run_scenario.sh) select another project.
 # The PLC restarts on every trial: only use it on a test PLC.
 HERE=$(cd "$(dirname "$0")" && pwd)
 TAG=${1:?tag}; REP=${2:-1}
 IOCDIR=${IOCDIR:?IOCDIR}; HOSTIP=${HOSTIP:?HOSTIP}; PLCIP=${PLCIP:?PLCIP}
-STEADY=${STEADY:-10}; OBS=${OBS:-100}; BOOT=${BOOT:-400}; MAXLIFE=${MAXLIFE:-900}
+READY=${READY:-CYCLIC_STATE port=851 .*state=21->5}; STEADY=${STEADY:-10}; OBS=${OBS:-100}; BOOT=${BOOT:-400}; MAXLIFE=${MAXLIFE:-900}
 L=$HERE/runs/inject-$(date +%Y%m%d-%H%M%S)-$TAG; mkdir -p "$L"
 echo "outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir" > "$L/summary.csv"
 echo "ioc_dir=$IOCDIR steady=$STEADY observe=$OBS" > "$L/meta.txt"
@@ -21,7 +22,7 @@ for r in $(seq 1 $REP); do
   sleep 1
   RUN_DIR=$RD IOC_IPADDR=$HOSTIP ADS_IOC_DIR=$IOCDIR setsid timeout $MAXLIFE "$HERE/run_scenario.sh" inject-$TAG > /dev/null 2>&1 < /dev/null & IP=$!
   echo "$(date +%H:%M:%S) trial $r/$REP run=$RD" | tee -a "$L/progress.log"
-  timeout $BOOT bash -c "until grep -q 'CYCLIC_STATE port=851 .*state=21->5' $RD/ioc.raw.log 2>/dev/null; do sleep 2; done"
+  timeout $BOOT bash -c "until grep -q '$READY' $RD/ioc.raw.log 2>/dev/null; do sleep 2; done"
   sleep $STEADY
   # $PP is the timeout wrapper; the signal must go to its python child, which does the injection
   kill -USR2 $(pgrep -P $PP -f ads_stall_proxy)

@@ -1,0 +1,1 @@
+ioc_dir=/tmp/ysm-prof/ads-ioc-master steady=10 observe=40

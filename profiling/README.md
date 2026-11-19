@@ -18,6 +18,7 @@ The sample IOC (`lcls-plc-motion-abstraction-sample`) links the **site** module 
 | `patches/0003-F12-receiveframe-skip.patch` | F12: AdsLib `ReceiveFrame` skips only the unread remainder after a timeout. Fixes the stream desync. |
 | `patches/0004-experiment-noexit.patch` | Experiment, not a fix: `cyclicThread` logs `EXIT_SKIPPED` instead of calling `exit(-1)`, so the IOC survives a PLC restart and the reconnect branch becomes reachable. |
 | `patches/0005-log-sub-read-status.patch` | Log only: adds the per-symbol status (for example `0x710`) to the `bulk read for ... failed` line. |
+| `patches/0008-F14-exit-without-teardown.patch` | Prototype F14, targets the **master** tree (not 1.1.1): `cyclicThread` ends the process with `fflush(NULL); _exit(255)` instead of `exit(-1)`, so static destructors do not run under live threads (the SIGSEGV). Build variants `master` (unpatched master, `SITE_MODULE` = an export of it with the ADS submodule copied in, `MODULE_SUBDIR=adsApp`) and `masterf14`. |
 | `patches/0006-F15-reresolve-handles.patch` | Prototype F15: `refreshParams` re-resolves all symbol handles (SUMUP) before rebuilding. Does not release the old handles yet. |
 | `patches/0007-F15b-rehandle-failed-symbols.patch` | Prototype F15b: new handle per symbol whose bulk read returned 0x710, retried every 5 s from `cyclicThread`. |
 

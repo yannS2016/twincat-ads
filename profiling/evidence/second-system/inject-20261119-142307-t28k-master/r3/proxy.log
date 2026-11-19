@@ -1,0 +1,10 @@
+14:29:54.783 PROXY LISTEN 134.79.165.33:48898 -> 172.21.148.154:48898 mode=pause
+14:29:56.679 PROXY CONN_OPEN client=134.79.165.33:42028 target=172.21.148.154:48898
+14:32:22.194 PROXY INJECT_RESET write control state=2 to port 10000, src_port=30001
+14:32:22.195 PROXY PROBE_STATE t=+0.00s ams_error=0 result=0 ads_state=5
+14:32:22.201 PROXY INJECT_REPLY ams_error=0 result=0
+14:32:22.296 PROXY PROBE_STATE t=+0.10s ams_error=0 result=0 ads_state=6
+14:32:23.526 PROXY EOF dir=c2p (peer closed the connection)
+14:32:23.527 PROXY EOF dir=p2c (peer closed the connection)
+14:32:23.527 PROXY CONN_CLOSE client=134.79.165.33:42028
+14:32:23.607 PROXY PROBE_END conn_alive=False

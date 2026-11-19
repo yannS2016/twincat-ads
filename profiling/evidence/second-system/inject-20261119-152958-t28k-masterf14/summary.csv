@@ -1,0 +1,4 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+EXIT,,0,5483,255,1.2,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-152958-t28k-masterf14/r1
+EXIT,,0,3302,255,0.4,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-152958-t28k-masterf14/r2
+EXIT,,0,5831,255,0.9,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-152958-t28k-masterf14/r3

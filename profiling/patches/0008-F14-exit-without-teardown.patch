@@ -1,0 +1,16 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp	2026-11-19 15:29:28.225854749 -0800
++++ b/adsApp/src/adsAsynPortDriver.cpp	2026-11-19 15:29:28.246854351 -0800
+@@ -1550,7 +1550,12 @@
+                       ASYN_TRACE_ERROR,
+                       "cyclicThread: failed to re-establish connection to ams server... exiting "
+                       "ioc. will retry if on auto restart.\n");
+-            exit(-1);
++            /* FIX F14: do not call exit() from this worker thread. exit() runs the static destructors (the global
++             * AmsRouter in AdsLib among them) while other threads, for example the motor poller, are still sending
++             * ADS requests, and the IOC dies with SIGSEGV instead of the exit status the supervisor expects.
++             * _exit() ends the process at once with the same status (255) and skips that teardown. */
++            fflush(NULL);
++            _exit(255);
+         }
+ 
+         if (!oneAmsConnectionOK && autoConnect_)

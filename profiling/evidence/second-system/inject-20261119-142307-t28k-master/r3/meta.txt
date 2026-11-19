@@ -1,0 +1,9 @@
+scenario=inject-t28k-master
+start=2026-11-19T14:29:55-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-master/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=ddcbd176d83fd538809f52be65078a2d
+epicsEnvSet("IPADDR",           "134.79.165.33")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=bdd0121
