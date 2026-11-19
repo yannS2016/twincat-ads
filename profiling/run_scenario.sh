@@ -6,14 +6,17 @@ set -e
 SCEN=${1:?scenario name}
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=${REPO:-$HOME/lcls-plc-motion-abstraction-sample}
-SRC=$REPO/iocBoot/ioc-motion-abstraction-sample
+# Env IOC_NAME (iocBoot dir and IOC name) and DB_BASE (database and archive file base name) select another project, e.g.
+# REPO=~/modules/lcls-plc-tst-tcads IOC_NAME=ioc-TestIOC DB_BASE=TestIOC
+NAME=${IOC_NAME:-ioc-motion-abstraction-sample}
+DB_BASE=${DB_BASE:-motion_abstraction_sample}
+SRC=$REPO/iocBoot/$NAME
 ADS=${ADS_IOC_DIR:-$HERE/ads-ioc-prof}
 [ "$2" = "--shipped" ] && ADS=$HOME/ads-ioc/R2.2.1
 RUN=${RUN_DIR:-$HERE/runs/$(date +%Y%m%d-%H%M%S)-$SCEN}
 STAGE=$RUN/stage
-NAME=ioc-motion-abstraction-sample
 mkdir -p "$STAGE/data"
-for f in st.cmd motion_abstraction_sample.db motion_abstraction_sample.archive; do cp -f "$SRC/$f" "$STAGE/$f"; done
+for f in st.cmd $DB_BASE.db $DB_BASE.archive; do cp -f "$SRC/$f" "$STAGE/$f"; done
 # Profiling only: raise asyn trace to ERROR+INFO (0x71 floods: 127k lines per 11 min) on the staged copy (repo untouched)
 sed -i 's/asynSetTraceMask("\$(ASYN_PORT)", -1, 0x41)/asynSetTraceMask("$(ASYN_PORT)", -1, 0x41)/' "$STAGE/st.cmd"
 # Profiling only: point the IOC at a stall proxy (the AMSID stays the PLC's) when IOC_IPADDR is set

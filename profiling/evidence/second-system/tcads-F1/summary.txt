@@ -1,0 +1,4 @@
+tcads project (lcls-plc-tst-tcads, TestIOC.db, 26755 records, 23391 symbols) booted with the base build against PLC 172.21.148.154 at 11:56, stopped by hand at about 11:58 while it was still doing per-symbol lookups.
+SYMINFO_DONE resolved=2741 failed=20650 (all failures ADSERR_DEVICE_SYMBOLNOTFOUND 0x710, e.g. Main.M1_EPICS_HOMPROC, Main.fbMotionArr[9]...). 14634 per-symbol "Get symbolic information failed" lines in the first 2 minutes.
+PLC handle table read with handle_usage.py: before the IOC (fresh project load) max_dyn=2000 used_dyn=0 symbols=1156; after the IOC: max_dyn=10000 used_dyn=2673.
+The PLC has Main.fbMotionArr but not Main.M1_EPICS_HOMPROC, so the running project is not the one TestIOC.db was generated from (db and tsproj dated 2026-11-19 11:52).
