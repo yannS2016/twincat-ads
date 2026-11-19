@@ -1,0 +1,4 @@
+Two connections, 50 names taken from the IOC database (7307 distinct names), connection 1 closed before connection 2 opened (3 s).
+used_dyn 7318 before, 7318 after connection 1, 7318 after connection 2 (max 10000).
+Handle values identical across the connections: 50 of 50.
+Reading with connection 1 handles on connection 2 (ADS Read, group 0xF005): 50 ok, 0 failed.
