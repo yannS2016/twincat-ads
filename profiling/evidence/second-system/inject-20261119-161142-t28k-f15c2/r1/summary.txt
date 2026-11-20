@@ -1,0 +1,5 @@
+failing cycles: 0 reads in them: 0 failed: 0
+16:14:36.453 REFRESH_ENTER port=851 connectedAds=1 paramCount=34280 bulk0.readSize=16 bulk0.cnt=500
+16:14:38.968 REFRESH_EXIT port=851 setting bulkOK=1 connectedAds=1 bulk0.readSize=5992
+16:14:39.103 REFRESH_ENTER port=851 connectedAds=1 paramCount=34280 bulk0.readSize=16 bulk0.cnt=500
+16:14:41.715 REFRESH_EXIT port=851 setting bulkOK=1 connectedAds=1 bulk0.readSize=5992

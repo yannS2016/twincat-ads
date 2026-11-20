@@ -1,0 +1,9 @@
+scenario=inject-t28k-f15c
+start=2026-11-19T15:55:33-08:00
+ioc_bin=/tmp/ysm-prof/ads-ioc-f15cnoexit/bin/rhel9-x86_64/adsIoc
+ioc_bin_md5=a64ee43e48e79aaadaee9a1844828e23
+epicsEnvSet("IPADDR",           "134.79.165.33")
+epicsEnvSet("AMSID",            "172.21.148.154.1.1")
+epicsEnvSet("AMS_PORT",         "851")
+epicsEnvSet("ADS_TIMEOUT_MS",   "1000")
+repo_head=bdd0121

@@ -1,0 +1,3 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+RECOVERED,15.1,0,3,,0.1,2,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-161142-t28k-f15c2/r1
+RECOVERED,14.7,0,3,,2.3,2,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-161142-t28k-f15c2/r2

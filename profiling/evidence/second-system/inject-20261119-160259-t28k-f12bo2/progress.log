@@ -1,0 +1,5 @@
+16:03:00 trial 1/2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-160259-t28k-f12bo2/r1
+STUCK,15.1,0,36,,80.8,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-160259-t28k-f12bo2/r1
+16:07:21 trial 2/2 run=/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-160259-t28k-f12bo2/r2
+STUCK,14.6,0,33,,82.4,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-160259-t28k-f12bo2/r2
+16:11:42 INJECT_DONE

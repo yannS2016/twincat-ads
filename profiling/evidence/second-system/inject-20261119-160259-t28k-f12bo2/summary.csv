@@ -1,0 +1,3 @@
+outcome,reset_to_run_s,group_fail,sub_fail,ioc_rc,last_fail_after_reset_s,rehandle_calls,run_dir
+STUCK,15.1,0,36,,80.8,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-160259-t28k-f12bo2/r1
+STUCK,14.6,0,33,,82.4,0,/cds/home/y/ysmandza/modules/twincat-ads/master/profiling/runs/inject-20261119-160259-t28k-f12bo2/r2

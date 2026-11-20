@@ -4,6 +4,8 @@
 #   variant: base  = instrumentation only (log lines, no behavior change)
 #            f10   = base + F10 (restore connectedAds_)
 #            f12   = base + F10 + F12 (AdsLib frame skip)
+#            f15cnoexit = f15bnoexit + 0009 (F16: back off and probe when nearly all bulk reads fail, throttle the log)
+#            f12bonoexit = f12noexitdbg + 0009 (backoff alone, without F15, to test it on a stuck driver)
 #            master    = the unpatched master tree (set SITE_MODULE to an export of it); masterf14 = master + 0008
 #            noexit    = base + 0004 (experiment: exit(-1) in cyclicThread only logs EXIT_SKIPPED)
 #            f12noexit = f12 + 0004
@@ -16,13 +18,13 @@
 # Result: <out>/ads-<variant> (module) and <out>/ads-ioc-<variant> (IOC with bin/<arch>/adsIoc).
 # Patches are module-relative (apply with -p1) and target twincat-ads R2.0.0-1.1.1 sources.
 set -euo pipefail
-VAR=${1:?variant base|f10|f12|noexit|f12noexit|f12noexitdbg|f15noexit|f15bnoexit|f15bonly|master|masterf14}
+VAR=${1:?variant base|f10|f12|noexit|f12noexit|f12noexitdbg|f15noexit|f15bnoexit|f15bonly|f15cnoexit|f12bonoexit|master|masterf14}
 HERE=$(cd "$(dirname "$0")" && pwd)
 OUT=${2:-$HERE/build}
 SITE_MODULE=${SITE_MODULE:-/cds/group/pcds/epics/R7.0.3.1-2.0/modules/twincat-ads/R2.0.0-1.1.1}
 ADS_IOC_SRC=${ADS_IOC_SRC:-$HOME/ads-ioc/R2.2.1}
 ARCH=${EPICS_HOST_ARCH:-rhel9-x86_64}
-case $VAR in base) P="0001";; f10) P="0001 0002";; f12) P="0001 0002 0003";; noexit) P="0001 0004";; f12noexit) P="0001 0002 0003 0004";; f12noexitdbg) P="0001 0002 0003 0004 0005";; f15noexit) P="0001 0002 0003 0004 0005 0006";; f15bnoexit) P="0001 0002 0003 0004 0005 0006 0007";; f15bonly) P="0001 0002 0003 0004 0005 0007";; master) P="";; masterf14) P="0008";; *) echo "bad variant"; exit 1;; esac
+case $VAR in base) P="0001";; f10) P="0001 0002";; f12) P="0001 0002 0003";; noexit) P="0001 0004";; f12noexit) P="0001 0002 0003 0004";; f12noexitdbg) P="0001 0002 0003 0004 0005";; f15noexit) P="0001 0002 0003 0004 0005 0006";; f15bnoexit) P="0001 0002 0003 0004 0005 0006 0007";; f15bonly) P="0001 0002 0003 0004 0005 0007";; f15cnoexit) P="0001 0002 0003 0004 0005 0006 0007 0009";; f12bonoexit) P="0001 0002 0003 0004 0005 0009";; master) P="";; masterf14) P="0008";; *) echo "bad variant"; exit 1;; esac
 MOD=$OUT/ads-$VAR; IOC=$OUT/ads-ioc-$VAR
 mkdir -p "$OUT"; rm -rf "$MOD" "$IOC"
 cp -a "$SITE_MODULE" "$MOD"; chmod -R u+w "$MOD"

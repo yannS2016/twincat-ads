@@ -1,0 +1,105 @@
+--- a/adsApp/src/adsAsynPortDriver.cpp	2026-11-19 15:41:19.736303922 -0800
++++ b/adsApp/src/adsAsynPortDriver.cpp	2026-11-19 16:02:18.704391969 -0800
+@@ -1599,8 +1599,16 @@
+         printf("bulkReadThread: TOTAL %d chunk(s), %d param slots\n", nChunks, totalParams);
+ #endif
+     }
++    /* FIX F16: when (almost) every read of a poll cycle fails, polling all groups again at full rate only makes the PLC
++     * log an error per read (about 17000 per second at 28000 symbols). After one such cycle, back off exponentially and poll only group 0
++     * as a probe until it works again. */
++    unsigned failCycles  = 0;
++    unsigned cycleReads  = 0;
++    unsigned cycleFails  = 0;
+     while (1)
+     {
++        cycleReads = 0;
++        cycleFails = 0;
+         {
+             std::lock_guard<std::mutex> lg(bulkReadInfoMutex_);
+             gettimeofday(&start, NULL);
+@@ -1610,6 +1618,10 @@
+                 {
+                     break;
+                 }
++                if (failCycles >= 1 && i > 0)
++                {
++                    break; // backing off: group 0 alone is the probe
++                }
+ #ifdef MCB_DEBUG
+                 static int first = 1;
+                 if (first)
+@@ -1636,6 +1648,8 @@
+                     profLog("BULK_FAIL",
+                             "grp=%d status=%ld cnt=%u readSize=%d bulkOK=%d connectedAds=%d",
+                             i, status, (unsigned)cnt, (int)readSize, (int)bulkOK, (int)connectedAds_);
++                    cycleReads += cnt;
++                    cycleFails += cnt;
+                     continue;
+                 }
+ 
+@@ -1677,16 +1691,20 @@
+                         continue;
+                     }
+                     uint32_t subStatus = *stat++;
++                    cycleReads++;
+                     if (subStatus)
+                     {
+-                        asynPrint(asynTraceUser,
+-                                  ASYN_TRACE_ERROR,
+-                                  "%s:%s: bulk read for %s (%d) failed: 0x%x\n",
+-                                  driverName,
+-                                  functionName,
+-                                  paramInfo->drvInfo,
+-                                  j,
+-                                  (unsigned)subStatus);
++                        if (++cycleFails <= 3) // the first few per cycle only, a summary follows after the loop
++                        {
++                            asynPrint(asynTraceUser,
++                                      ASYN_TRACE_ERROR,
++                                      "%s:%s: bulk read for %s (%d) failed: 0x%x\n",
++                                      driverName,
++                                      functionName,
++                                      paramInfo->drvInfo,
++                                      j,
++                                      (unsigned)subStatus);
++                        }
+                         paramInfo->refreshNeeded = true;
+                         if (subStatus == 0x710) // ADSERR_DEVICE_SYMBOLNOTFOUND: the PLC no longer knows the handle
+                         {
+@@ -1702,11 +1720,35 @@
+         }
+         gettimeofday(&now, NULL);
+         bulk_elapsed_us = (now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec);
++        if (cycleReads > 0)
++        {
++            if (cycleFails * 10 >= cycleReads * 9) // at least 90 percent of the reads failed
++            {
++                failCycles++;
++                profLog("BULK_CYCLE_FAIL", "reads=%u failed=%u cycles_in_a_row=%u", cycleReads, cycleFails, failCycles);
++                if (failCycles == 1 || failCycles % 10 == 0)
++                {
++                    asynPrint(asynTraceUser,
++                              ASYN_TRACE_ERROR,
++                              "%s:%s: %u of %u bulk reads failed (%u poll cycles in a row), backing off\n",
++                              driverName,
++                              functionName,
++                              cycleFails,
++                              cycleReads,
++                              failCycles);
++                }
++            }
++            else
++            {
++                failCycles = 0;
++            }
++        }
++        int backoffUs = failCycles ? std::min(10000000, 100000 << std::min(failCycles, 7u)) : 0;
+ #ifdef MCB_DEBUG
+         printf("ELAPSED: %g\n", bulk_elapsed_us / 1000000.0);
+ #endif
+         // Always sleep at least 10ms
+-        usleep(std::max(bulk_delay_us - bulk_elapsed_us, 10000));
++        usleep(std::max(bulk_delay_us - bulk_elapsed_us, 10000) + backoffUs);
+     }
+ }
+ 
