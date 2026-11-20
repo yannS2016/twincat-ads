@@ -206,6 +206,22 @@ Measured with the fast stamper:
 
 Evidence: `evidence/second-system/inject-20261119-*-t28k-*` (each run dir has a `summary.txt`).
 
+### Porting the fixes to the driver (status 2026-11-19)
+
+Branch `bugfix_reactivation_resilience` (commit `989b4e3`, based on `1b89771`, not pushed) holds the port of the prototype patches to the driver in this repository. It is **compiled but not verified**: nothing from that branch has been run against a PLC, and the new unit test is disabled.
+
+| Fix | Ported to the driver | Verified |
+|---|---|---|
+| F10 restore `connectedAds_` (0002) | yes | prototype only (1.1.1 builds, real PLC) |
+| F15 re-resolve handles in `refreshParams` (0006) | yes | prototype only |
+| F15b new handle for symbols that read 0x710 (0007) | yes | prototype only |
+| F16 backoff and probe (0009) | yes | prototype only |
+| F14 `_exit(255)` instead of `exit(-1)` (0008) | yes (0008 was already built and run against this tree, 3 of 3 exit 255) | master tree + 0008: yes |
+| F12 AdsLib `ReceiveFrame` skip (0003) | **no**, it is a change in the ADS submodule (`pcdshub/ADS`) | prototype only. Checked 2026-11-19: Beckhoff's `master` `AmsConnection::ReceiveFrame` still calls `ReceiveJunk(bytesLeft)` after a timeout without subtracting what was already read, so the bug is upstream too |
+| F1 bounded reconnect instead of exit, F13 second refresh | no | not started |
+
+Unit test: `tests/server/ads_test_server.py` can simulate a PLC restart and `tests/unit` has `DISABLED_Stage8b_BulkReadsRecoverAfterPlcRestart`. With the port, the 13 existing lifecycle tests passed once. Stage8b failed in all three runs and one run hung after the simulated restart until it was killed. Possible causes (slow pyads linear scans in the test server, a lock-order deadlock between `refreshParams` and the bulk thread, a pass condition that is too fine) and how to resume are written up in `tests/README.md`, "Known issues", on that branch. **The possible deadlock has to be settled before the fixes are merged.** The worktree used for the port was `/tmp/ysm-prof/wt-fix`; `/tmp` is not backed up, the branch is what to keep.
+
 ## Findings
 
 | ID | Finding | Verdict | Evidence |
